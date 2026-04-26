@@ -79,6 +79,19 @@ filters, card and compact table views, and a priority section for stale or offli
 ## Development
 
 ```bash
+make install
+make verify
+```
+
+Individual checks:
+
+```bash
 uv run pytest
 uv run ruff check .
 ```
+
+## Releases
+
+Releases are managed by GitHub Actions using Conventional Commits and semantic-release. Merges to
+`master` can create GitHub releases, publish the Python package to PyPI, and publish multi-arch
+Docker images to Docker Hub as `tvallas/mtrview`.
