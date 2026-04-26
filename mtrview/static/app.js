@@ -27,6 +27,8 @@ const els = {
   tableView: document.getElementById("tableView"),
   cardButton: document.getElementById("cardViewButton"),
   tableButton: document.getElementById("tableViewButton"),
+  controls: document.getElementById("controls"),
+  controlsToggle: document.getElementById("controlsToggle"),
   sortHeaders: document.querySelectorAll(".sort-header"),
 };
 
@@ -189,15 +191,15 @@ function render() {
   fillSelect(els.receiver, state.data.receivers || [], "All receivers");
 
   const mqtt = state.data.mqtt || {};
-  els.mqttStatus.textContent = mqtt.connected ? "MQTT connected" : `MQTT ${mqtt.error || "disconnected"}`;
-  els.mqttStatus.className = `pill ${mqtt.connected ? "ok" : "offline"}`;
-  els.refreshTime.textContent = `Refreshed ${new Date().toLocaleTimeString()}`;
+  els.mqttStatus.textContent = mqtt.connected ? "connected" : mqtt.error || "disconnected";
+  els.mqttStatus.closest(".metric-tile").className = `metric-tile status-tile ${mqtt.connected ? "ok" : "offline"}`;
+  els.refreshTime.textContent = new Date().toLocaleTimeString();
 
   const readings = filteredReadings();
   const priority = readings.filter((reading) => reading.problem).slice(0, 12);
   els.priorityCards.innerHTML = priority.length
     ? priority.map(card).join("")
-    : '<p class="empty">No non-online sensors.</p>';
+    : '<p class="empty">No offline sensors.</p>';
 
   renderGroups(readings);
   renderTable(readings);
@@ -330,6 +332,13 @@ els.tableButton.addEventListener("click", () => {
   els.cardButton.classList.remove("active");
   els.tableView.classList.remove("hidden");
   els.cardView.classList.add("hidden");
+});
+
+els.controlsToggle.addEventListener("click", () => {
+  const collapsed = document.body.classList.toggle("controls-collapsed");
+  els.controlsToggle.setAttribute("aria-expanded", String(!collapsed));
+  els.controlsToggle.textContent = collapsed ? "Show filters" : "Hide filters";
+  els.controlsToggle.title = collapsed ? "Show filters" : "Hide filters";
 });
 
 render();

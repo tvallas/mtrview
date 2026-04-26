@@ -77,6 +77,11 @@ def test_dashboard_html_smoke() -> None:
     assert "apple-touch-icon.png" in response.text
     assert "mtrview-logo.png" in response.text
     assert "Latest mtr2mqtt summaries from MQTT" not in response.text
+    assert "Not online" not in response.text
+    assert "Offline" in response.text
+    assert 'id="controlsToggle"' in response.text
+    assert 'class="controls-collapsed"' in response.text
+    assert "Show filters" in response.text
     assert 'id="tableView" class="table-wrap"' in response.text
     assert 'data-sort="status"' in response.text
 
