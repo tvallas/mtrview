@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v0.2.1 (2026-04-26)
+
+### Bug Fixes
+
+- **docker**: Remove runtime rust dependencies
+  ([`26f6641`](https://github.com/tvallas/mtrview/commit/26f664183e4ea1d956af0097f991d2e8e66f3063))
+
+- **docker**: Support armv6 image builds
+  ([`b22a786`](https://github.com/tvallas/mtrview/commit/b22a78647ebe2e60b9d980dbd71dad15171fbed3))
+
+
 ## v0.2.0 (2026-04-26)
 
 ### Features
