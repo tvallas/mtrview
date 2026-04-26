@@ -74,3 +74,28 @@ def test_dashboard_html_smoke() -> None:
     assert "MTRVIEW_INITIAL_DATA" in response.text
     assert 'id="tableView" class="table-wrap"' in response.text
     assert 'data-sort="status"' in response.text
+
+
+def test_api_summary_exposes_age_seconds_for_client_side_ticking() -> None:
+    app = create_app(Settings(mqtt_enabled=False))
+    app.state.store.update_from_json(
+        "A1",
+        """
+        {
+          "receiver": "A1",
+          "transmitters": {
+            "15006": {
+              "measured_at": "2026-04-26T12:03:39Z",
+              "status": "online",
+              "value": 22.3
+            }
+          }
+        }
+        """,
+    )
+
+    with TestClient(app) as client:
+        response = client.get("/api/summary")
+
+    assert response.status_code == 200
+    assert "age_seconds" in response.json()["readings"][0]

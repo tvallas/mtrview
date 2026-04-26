@@ -1,5 +1,6 @@
 const state = {
   data: window.MTRVIEW_INITIAL_DATA || { readings: [], counts: {}, zones: [], receivers: [] },
+  fetchedAt: Date.now(),
   view: "table",
   sortKey: "status",
   sortDirection: "desc",
@@ -58,6 +59,13 @@ function ageLabel(seconds) {
   return `${Math.floor(hours / 24)} days ago`;
 }
 
+function ageSpan(reading) {
+  if (reading.age_seconds === null || reading.age_seconds === undefined) {
+    return '<span class="relative-age">unknown age</span>';
+  }
+  return `<span class="relative-age" data-age-seconds="${reading.age_seconds}">${ageLabel(reading.age_seconds)}</span>`;
+}
+
 function fmtValue(value) {
   if (value === null || value === undefined || value === "") return "n/a";
   if (typeof value === "number") return Number.isInteger(value) ? value : value.toFixed(1);
@@ -84,7 +92,7 @@ function card(reading) {
       </div>
       <div class="value">${escapeHtml(fmtValue(reading.value))} <span class="unit">${escapeHtml(reading.unit)}</span></div>
       <div class="meta">${escapeHtml(reading.quantity)}${reading.description ? ` · ${escapeHtml(reading.description)}` : ""}</div>
-      <div class="timestamp">updated ${ageLabel(reading.age_seconds)} · ${escapeHtml(reading.measured_at || "no timestamp")}</div>
+      <div class="timestamp">updated ${ageSpan(reading)} · ${escapeHtml(reading.measured_at || "no timestamp")}</div>
     </article>
   `;
 }
@@ -241,7 +249,7 @@ function renderTable(readings) {
           <td>${escapeHtml(reading.quantity)}</td>
           <td>${escapeHtml(fmtValue(reading.value))}</td>
           <td>${escapeHtml(reading.unit)}</td>
-          <td>${escapeHtml(ageLabel(reading.age_seconds))}</td>
+          <td>${ageSpan(reading)}</td>
           <td>${escapeHtml(reading.zone)}</td>
           <td>${escapeHtml(reading.receiver)}</td>
           <td>${escapeHtml(reading.transmitter_id)}</td>
@@ -268,11 +276,22 @@ async function refresh() {
   try {
     const response = await fetch("/api/summary", { cache: "no-store" });
     state.data = await response.json();
+    state.fetchedAt = Date.now();
     render();
   } catch (error) {
     els.mqttStatus.textContent = "Refresh failed";
     els.mqttStatus.className = "pill offline";
   }
+}
+
+function tickRelativeAges() {
+  const elapsedSeconds = Math.floor((Date.now() - state.fetchedAt) / 1000);
+  document.querySelectorAll(".relative-age[data-age-seconds]").forEach((element) => {
+    const baseAge = Number(element.dataset.ageSeconds);
+    if (!Number.isNaN(baseAge)) {
+      element.textContent = ageLabel(baseAge + elapsedSeconds);
+    }
+  });
 }
 
 [els.search, els.status, els.zone, els.receiver].forEach((el) => {
@@ -318,4 +337,6 @@ els.tableButton.addEventListener("click", () => {
 });
 
 render();
+tickRelativeAges();
+setInterval(tickRelativeAges, 1000);
 setInterval(refresh, Math.max(5, window.MTRVIEW_REFRESH_INTERVAL || 20) * 1000);
