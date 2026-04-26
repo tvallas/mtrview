@@ -34,6 +34,7 @@ jobs:
           output: trivy-fs.sarif
           severity: HIGH,CRITICAL
           scanners: vuln
+          limit-severities-for-sarif: true
           ignore-unfixed: true
           exit-code: 1
 
@@ -57,6 +58,7 @@ jobs:
           output: trivy-image.sarif
           severity: HIGH,CRITICAL
           scanners: vuln
+          limit-severities-for-sarif: true
           ignore-unfixed: true
           exit-code: 1
 
