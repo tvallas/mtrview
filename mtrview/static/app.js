@@ -2,8 +2,9 @@ const state = {
   data: window.MTRVIEW_INITIAL_DATA || { readings: [], counts: {}, zones: [], receivers: [] },
   fetchedAt: Date.now(),
   view: "table",
-  sortKey: "status",
-  sortDirection: "desc",
+  sortKey: "location",
+  sortDirection: "asc",
+  selectedReadingKey: null,
 };
 
 const els = {
@@ -11,15 +12,14 @@ const els = {
   mqttStatus: document.getElementById("mqttStatus"),
   counts: {
     total: document.getElementById("countTotal"),
-    online: document.getElementById("countOnline"),
     offline: document.getElementById("countOffline"),
-    receivers: document.getElementById("countReceivers"),
   },
   search: document.getElementById("searchInput"),
   status: document.getElementById("statusFilter"),
   zone: document.getElementById("zoneFilter"),
   receiver: document.getElementById("receiverFilter"),
   sort: document.getElementById("sortSelect"),
+  prioritySection: document.getElementById("prioritySection"),
   priorityCards: document.getElementById("priorityCards"),
   sensorGroups: document.getElementById("sensorGroups"),
   sensorTable: document.getElementById("sensorTable"),
@@ -30,10 +30,12 @@ const els = {
   controls: document.getElementById("controls"),
   controlsToggle: document.getElementById("controlsToggle"),
   sortHeaders: document.querySelectorAll(".sort-header"),
+  detailOverlay: document.getElementById("sensorDetailOverlay"),
+  detailClose: document.getElementById("detailClose"),
+  sensorDetail: document.getElementById("sensorDetail"),
 };
 
 const sortDefaults = {
-  status: "desc",
   location: "asc",
   quantity: "asc",
   value: "asc",
@@ -96,6 +98,20 @@ function card(reading) {
   `;
 }
 
+function sensorLabel(reading) {
+  const location = reading.location === "Unknown location" ? "" : reading.location;
+  const detail =
+    reading.description ||
+    (reading.quantity === "Unknown measurement" ? "" : reading.quantity) ||
+    reading.display_name ||
+    `Transmitter ${reading.transmitter_id}`;
+  return [location, detail].filter(Boolean).join(" ") || reading.display_name;
+}
+
+function readingKey(reading) {
+  return `${reading.receiver}\u001f${reading.transmitter_id}`;
+}
+
 function fillSelect(select, values, allLabel) {
   const previous = select.value;
   select.innerHTML = `<option value="all">${allLabel}</option>`;
@@ -147,9 +163,7 @@ function compareReadings(a, b) {
   const key = state.sortKey;
   let result = 0;
 
-  if (key === "status") {
-    result = statusRank(a) - statusRank(b);
-  } else if (key === "updated") {
+  if (key === "updated") {
     result = (a.age_seconds ?? 999999999) - (b.age_seconds ?? 999999999);
   } else if (key === "value") {
     result = compareValues(a.value, b.value);
@@ -159,10 +173,6 @@ function compareReadings(a, b) {
 
   if (result === 0) result = a.sort_key.localeCompare(b.sort_key);
   return result * direction;
-}
-
-function statusRank(reading) {
-  return reading.status === "online" ? 0 : 1;
 }
 
 function compareValues(a, b) {
@@ -184,26 +194,36 @@ function textValue(reading, key) {
 function render() {
   const counts = state.data.counts || {};
   els.counts.total.textContent = counts.total ?? 0;
-  els.counts.online.textContent = counts.online ?? 0;
   els.counts.offline.textContent = counts.offline ?? 0;
-  els.counts.receivers.textContent = counts.receivers ?? 0;
   fillSelect(els.zone, state.data.zones || [], "All zones");
   fillSelect(els.receiver, state.data.receivers || [], "All receivers");
 
   const mqtt = state.data.mqtt || {};
-  els.mqttStatus.textContent = mqtt.connected ? "connected" : mqtt.error || "disconnected";
-  els.mqttStatus.closest(".metric-tile").className = `metric-tile status-tile ${mqtt.connected ? "ok" : "offline"}`;
+  setMqttStatus(mqtt.connected, mqtt.error || "disconnected");
   els.refreshTime.textContent = new Date().toLocaleTimeString();
 
   const readings = filteredReadings();
   const priority = readings.filter((reading) => reading.problem).slice(0, 12);
-  els.priorityCards.innerHTML = priority.length
-    ? priority.map(card).join("")
-    : '<p class="empty">No offline sensors.</p>';
+  els.prioritySection.classList.toggle("hidden", priority.length === 0);
+  els.priorityCards.innerHTML = priority.map(card).join("");
 
   renderGroups(readings);
   renderTable(readings);
+  renderOpenDetails();
   renderSortHeaders();
+}
+
+function setMqttStatus(connected, message) {
+  const statusText = connected ? "connected" : mqttStatusLabel(message);
+  els.mqttStatus.textContent = statusText;
+  els.mqttStatus.title = connected ? "MQTT connected" : message || "MQTT disconnected";
+  els.mqttStatus.closest(".metric-tile").className =
+    `metric-tile status-tile connection-tile ${connected ? "ok" : "offline"}`;
+}
+
+function mqttStatusLabel(message) {
+  if (message && message.toLowerCase().includes("refresh")) return "failed";
+  return "offline";
 }
 
 function renderGroups(readings) {
@@ -238,23 +258,89 @@ function groupBy(items, keyFn) {
 function renderTable(readings) {
   els.sensorTable.innerHTML = readings
     .map((reading) => {
-      const status = readingStatus(reading);
-      const badgeClass = reading.problem ? "problem" : "online";
+      const selected = state.selectedReadingKey === readingKey(reading);
       return `
-        <tr class="${reading.problem ? "problem" : ""}">
-          <td><span class="badge ${escapeHtml(badgeClass)}">${escapeHtml(reading.status_label || status)}</span></td>
-          <td>${escapeHtml(reading.location)}</td>
-          <td>${escapeHtml(reading.quantity)}</td>
-          <td>${escapeHtml(fmtValue(reading.value))}</td>
-          <td>${escapeHtml(reading.unit)}</td>
+        <tr
+          class="${reading.problem ? "problem" : ""}${selected ? " selected" : ""}"
+          data-receiver="${escapeHtml(reading.receiver)}"
+          data-transmitter="${escapeHtml(reading.transmitter_id)}"
+          tabindex="0"
+          role="button"
+          aria-label="Open ${escapeHtml(sensorLabel(reading))} details"
+        >
+          <td class="sensor-cell">${escapeHtml(sensorLabel(reading))}</td>
+          <td class="value-cell">${escapeHtml(fmtValue(reading.value))} <span>${escapeHtml(reading.unit)}</span></td>
           <td>${ageSpan(reading)}</td>
-          <td>${escapeHtml(reading.zone)}</td>
-          <td>${escapeHtml(reading.receiver)}</td>
-          <td>${escapeHtml(reading.transmitter_id)}</td>
+          <td class="optional-column">${escapeHtml(reading.zone)}</td>
+          <td class="optional-column">${escapeHtml(reading.receiver)}</td>
+          <td class="optional-column">${escapeHtml(reading.transmitter_id)}</td>
         </tr>
       `;
     })
     .join("");
+}
+
+function renderOpenDetails() {
+  if (!state.selectedReadingKey || els.detailOverlay.classList.contains("hidden")) return;
+  const reading = state.data.readings.find((item) => readingKey(item) === state.selectedReadingKey);
+  if (!reading) {
+    closeDetails();
+    return;
+  }
+  renderDetails(reading);
+}
+
+function openDetails(reading) {
+  state.selectedReadingKey = readingKey(reading);
+  renderDetails(reading);
+  els.detailOverlay.classList.remove("hidden");
+  els.detailOverlay.setAttribute("aria-hidden", "false");
+  document.body.classList.add("detail-open");
+  els.detailClose.focus();
+  renderTable(filteredReadings());
+}
+
+function closeDetails() {
+  state.selectedReadingKey = null;
+  els.detailOverlay.classList.add("hidden");
+  els.detailOverlay.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("detail-open");
+  renderTable(filteredReadings());
+}
+
+function renderDetails(reading) {
+  const badgeClass = reading.problem ? "problem" : "online";
+  els.sensorDetail.innerHTML = `
+    <div class="detail-head">
+      <div>
+        <h2 id="detailTitle">${escapeHtml(sensorLabel(reading))}</h2>
+        <p>${escapeHtml(reading.zone)} · ${escapeHtml(reading.receiver)} / ${escapeHtml(reading.transmitter_id)}</p>
+      </div>
+      <span class="badge ${escapeHtml(badgeClass)}">${escapeHtml(reading.status_label)}</span>
+    </div>
+    <div class="detail-value">${escapeHtml(fmtValue(reading.value))} <span>${escapeHtml(reading.unit)}</span></div>
+    <dl class="detail-grid">
+      ${detailRow("Location", reading.location)}
+      ${detailRow("Quantity", reading.quantity)}
+      ${detailRow("Description", reading.description || "n/a")}
+      ${detailRow("Zone", reading.zone)}
+      ${detailRow("Status", reading.status_label)}
+      ${detailRow("Status code", reading.status_code ?? "n/a")}
+      ${detailRow("Updated", `updated ${plainAge(reading)} · ${reading.measured_at || "no timestamp"}`)}
+      ${detailRow("Receiver", reading.receiver)}
+      ${detailRow("Transmitter", reading.transmitter_id)}
+    </dl>
+  `;
+}
+
+function detailRow(label, value) {
+  return `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`;
+}
+
+function plainAge(reading) {
+  return reading.age_seconds === null || reading.age_seconds === undefined
+    ? "unknown age"
+    : ageLabel(reading.age_seconds + Math.floor((Date.now() - state.fetchedAt) / 1000));
 }
 
 function renderSortHeaders() {
@@ -277,8 +363,7 @@ async function refresh() {
     state.fetchedAt = Date.now();
     render();
   } catch (error) {
-    els.mqttStatus.textContent = "Refresh failed";
-    els.mqttStatus.className = "pill offline";
+    setMqttStatus(false, "refresh failed");
   }
 }
 
@@ -290,6 +375,7 @@ function tickRelativeAges() {
       element.textContent = ageLabel(baseAge + elapsedSeconds);
     }
   });
+  renderOpenDetails();
 }
 
 [els.search, els.status, els.zone, els.receiver].forEach((el) => {
@@ -306,6 +392,48 @@ els.sortHeaders.forEach((button) => {
     setSort(button.dataset.sort);
   });
 });
+
+els.sensorTable.addEventListener("click", (event) => {
+  const row = rowFromEvent(event);
+  if (!row) return;
+  const reading = findReadingForRow(row);
+  if (reading) openDetails(reading);
+});
+
+els.sensorTable.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  const row = rowFromEvent(event);
+  if (!row) return;
+  event.preventDefault();
+  const reading = findReadingForRow(row);
+  if (reading) openDetails(reading);
+});
+
+els.detailClose.addEventListener("click", closeDetails);
+
+els.detailOverlay.addEventListener("click", (event) => {
+  if (event.target === els.detailOverlay) closeDetails();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !els.detailOverlay.classList.contains("hidden")) {
+    closeDetails();
+  }
+});
+
+function findReadingForRow(row) {
+  return state.data.readings.find((reading) => {
+    return (
+      reading.receiver === row.dataset.receiver &&
+      reading.transmitter_id === row.dataset.transmitter
+    );
+  });
+}
+
+function rowFromEvent(event) {
+  if (!(event.target instanceof Element)) return null;
+  return event.target.closest("tr[data-receiver][data-transmitter]");
+}
 
 function setSort(key) {
   if (state.sortKey === key) {
@@ -337,8 +465,8 @@ els.tableButton.addEventListener("click", () => {
 els.controlsToggle.addEventListener("click", () => {
   const collapsed = document.body.classList.toggle("controls-collapsed");
   els.controlsToggle.setAttribute("aria-expanded", String(!collapsed));
-  els.controlsToggle.textContent = collapsed ? "Show filters" : "Hide filters";
   els.controlsToggle.title = collapsed ? "Show filters" : "Hide filters";
+  els.controlsToggle.classList.toggle("active", !collapsed);
 });
 
 render();

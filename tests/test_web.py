@@ -81,9 +81,13 @@ def test_dashboard_html_smoke() -> None:
     assert "Offline" in response.text
     assert 'id="controlsToggle"' in response.text
     assert 'class="controls-collapsed"' in response.text
-    assert "Show filters" in response.text
+    assert "Filters" in response.text
+    assert 'id="prioritySection" class="priority-section hidden"' in response.text
     assert 'id="tableView" class="table-wrap"' in response.text
-    assert 'data-sort="status"' in response.text
+    assert 'id="sensorDetailOverlay"' in response.text
+    assert 'role="dialog"' in response.text
+    assert 'data-sort="location"' in response.text
+    assert 'data-sort="status"' not in response.text
 
 
 def test_api_summary_exposes_age_seconds_for_client_side_ticking() -> None:

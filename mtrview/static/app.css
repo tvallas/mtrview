@@ -24,6 +24,10 @@ body {
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+body.detail-open {
+  overflow: hidden;
+}
+
 .topbar {
   position: sticky;
   top: 0;
@@ -83,7 +87,7 @@ main {
 
 .header-metrics {
   display: grid;
-  grid-template-columns: repeat(6, minmax(5.8rem, auto)) auto;
+  grid-template-columns: minmax(14rem, auto) minmax(8.5rem, auto) auto auto;
   gap: 0.45rem;
   align-items: stretch;
   justify-content: end;
@@ -98,7 +102,7 @@ main {
 }
 
 .metric-tile {
-  min-width: 5.8rem;
+  min-width: 0;
   padding: 0.45rem 0.65rem;
 }
 
@@ -111,14 +115,53 @@ main {
 
 .metric-tile strong {
   display: block;
+  max-width: 100%;
   margin-top: 0.2rem;
+  overflow: hidden;
   font-size: 1.25rem;
   line-height: 1.05;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .status-tile strong {
   font-size: 0.95rem;
+}
+
+.connection-tile.ok #mqttStatus {
+  color: #7ee787;
+}
+
+.connection-tile.offline #mqttStatus {
+  color: #ff9b96;
+}
+
+.connection-tile strong {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+}
+
+.connection-tile {
+  min-width: 8.5rem;
+}
+
+.summary-tile {
+  min-width: 14rem;
+}
+
+.count-line {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.5rem;
+  align-items: baseline;
+  font-size: 0.88rem !important;
+  font-weight: 600;
+}
+
+.count-line b {
+  color: var(--text);
+  font-size: 1.05rem;
 }
 
 .metric-tile.ok strong {
@@ -129,12 +172,17 @@ main {
   color: #ff9b96;
 }
 
+.connection-tile.ok strong,
+.connection-tile.offline strong {
+  color: var(--text);
+}
+
 .controls {
   position: sticky;
   top: 4rem;
   z-index: 9;
   display: grid;
-  grid-template-columns: minmax(12rem, 2fr) repeat(4, minmax(8rem, 1fr)) auto;
+  grid-template-columns: minmax(12rem, 2fr) repeat(4, minmax(8rem, 1fr));
   gap: 0.6rem;
   margin: 0 0 1rem;
   padding: 0.75rem;
@@ -175,16 +223,80 @@ button.active {
 }
 
 .icon-button {
-  min-width: 4.9rem;
+  display: inline-flex;
+  min-width: 5.6rem;
   min-height: auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   padding: 0.35rem 0.65rem;
   border-radius: 8px;
   background: #0f1620;
 }
 
+.icon-button::after {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-top: -0.2rem;
+  border-right: 2px solid currentcolor;
+  border-bottom: 2px solid currentcolor;
+  transform: rotate(45deg);
+}
+
+.icon-button.active::after {
+  margin-top: 0.2rem;
+  transform: rotate(225deg);
+}
+
 .view-toggle {
   display: flex;
-  gap: 0.4rem;
+}
+
+.header-view-toggle {
+  position: relative;
+  isolation: isolate;
+  padding: 0.2rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0f1620;
+}
+
+.header-view-toggle::before {
+  position: absolute;
+  top: 0.2rem;
+  bottom: 0.2rem;
+  left: 0.2rem;
+  z-index: 0;
+  width: calc((100% - 0.4rem) / 2);
+  border-radius: 6px;
+  background: #12304f;
+  content: "";
+  transition: transform 140ms ease;
+}
+
+.header-view-toggle:has(#tableViewButton.active)::before {
+  transform: translateX(0);
+}
+
+.header-view-toggle:has(#cardViewButton.active)::before {
+  transform: translateX(100%);
+}
+
+.header-view-toggle button {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 0;
+  min-height: 2rem;
+  min-width: 4.2rem;
+  padding: 0 0.55rem;
+  border: 0;
+  background: transparent;
+  text-align: center;
+}
+
+.header-view-toggle button.active {
+  background: transparent;
 }
 
 .priority-section,
@@ -289,7 +401,7 @@ button.active {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 60rem;
+  min-width: 46rem;
   background: var(--panel);
 }
 
@@ -344,39 +456,286 @@ tr.problem td {
   background: rgba(248, 81, 73, 0.08);
 }
 
+tbody tr {
+  cursor: pointer;
+}
+
+tbody tr:hover td,
+tbody tr:focus-visible td,
+tbody tr.selected td {
+  background: rgba(88, 166, 255, 0.08);
+}
+
+tbody tr:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+tr.problem .sensor-cell {
+  box-shadow: inset 3px 0 0 rgba(248, 81, 73, 0.8);
+}
+
+.sensor-cell {
+  min-width: 14rem;
+  font-weight: 650;
+}
+
+.value-cell {
+  min-width: 6rem;
+  font-size: 1.1rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.value-cell span {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.detail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(1, 4, 9, 0.72);
+}
+
+.detail-panel {
+  position: relative;
+  width: min(34rem, 100%);
+  max-height: min(42rem, calc(100vh - 2rem));
+  overflow: auto;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.45);
+}
+
+.detail-close {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  width: 2rem;
+  min-width: 2rem;
+  min-height: 2rem;
+  padding: 0;
+  border-radius: 999px;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.detail-head {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding-right: 2.35rem;
+}
+
+.detail-head h2 {
+  margin-bottom: 0.25rem;
+  color: var(--text);
+  text-transform: none;
+}
+
+.detail-head p {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.detail-value {
+  margin: 1rem 0;
+  font-size: 2.6rem;
+  font-weight: 780;
+}
+
+.detail-value span {
+  color: var(--muted);
+  font-size: 1.1rem;
+  font-weight: 650;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.detail-grid div {
+  min-width: 0;
+  padding: 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0f1620;
+}
+
+.detail-grid dt {
+  margin-bottom: 0.25rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.detail-grid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 950px) {
   .controls {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .topbar {
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: center;
   }
 
   .header-metrics {
-    width: 100%;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(12rem, 1fr) minmax(8rem, 0.8fr) auto auto;
     justify-content: stretch;
   }
 
-  .view-toggle {
-    grid-column: 1 / -1;
+  .summary-tile {
+    min-width: 12rem;
   }
 }
 
 @media (max-width: 640px) {
   .topbar {
-    align-items: flex-start;
-    flex-direction: column;
+    position: static;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 0;
+    padding: 0.45rem 0.65rem 0.55rem;
   }
 
   .brand-logo {
-    width: min(12rem, 72vw);
+    width: min(7.4rem, 31vw);
   }
 
-  .header-metrics,
+  .header-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.3rem;
+  }
+
+  .metric-tile {
+    min-width: 0;
+    padding: 0.3rem 0.4rem;
+  }
+
+  .metric-tile span {
+    font-size: 0.6rem;
+  }
+
+  .metric-tile strong {
+    margin-top: 0.12rem;
+    font-size: 0.82rem;
+  }
+
+  .status-tile strong {
+    font-size: 0.72rem;
+  }
+
+  .connection-tile {
+    min-width: 0;
+  }
+
+  .summary-tile {
+    min-width: 0;
+  }
+
+  .count-line {
+    gap: 0.1rem 0.35rem;
+    font-size: 0.68rem !important;
+  }
+
+  .count-line b {
+    font-size: 0.82rem;
+  }
+
+  .header-view-toggle {
+    grid-column: span 1;
+    padding: 0.15rem;
+  }
+
+  .header-view-toggle button {
+    min-height: 1.75rem;
+    min-width: 0;
+    padding: 0 0.35rem;
+    font-size: 0.82rem;
+  }
+
+  .icon-button {
+    grid-column: span 1;
+    min-width: 0;
+    min-height: 2.05rem;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.82rem;
+  }
+
   .controls {
+    position: static;
     grid-template-columns: 1fr;
+  }
+
+  main {
+    padding-top: 0.55rem;
+  }
+
+  .priority-section,
+  .grouped-list,
+  .table-wrap {
+    margin-top: 0.75rem;
+  }
+
+  th,
+  td {
+    padding: 0.58rem 0.65rem;
+  }
+
+  table {
+    min-width: 0;
+  }
+
+  .optional-column {
+    display: none;
+  }
+
+  .sensor-cell {
+    min-width: 0;
+  }
+
+  .value-cell {
+    min-width: 4.4rem;
+    text-align: right;
+  }
+
+  .detail-overlay {
+    align-items: end;
+    padding: 0;
+  }
+
+  .detail-panel {
+    width: 100%;
+    max-height: 82vh;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 380px) {
+  .header-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
