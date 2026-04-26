@@ -20,6 +20,7 @@ const els = {
   zone: document.getElementById("zoneFilter"),
   receiver: document.getElementById("receiverFilter"),
   sort: document.getElementById("sortSelect"),
+  prioritySection: document.getElementById("prioritySection"),
   priorityCards: document.getElementById("priorityCards"),
   sensorGroups: document.getElementById("sensorGroups"),
   sensorTable: document.getElementById("sensorTable"),
@@ -197,9 +198,8 @@ function render() {
 
   const readings = filteredReadings();
   const priority = readings.filter((reading) => reading.problem).slice(0, 12);
-  els.priorityCards.innerHTML = priority.length
-    ? priority.map(card).join("")
-    : '<p class="empty">No offline sensors.</p>';
+  els.prioritySection.classList.toggle("hidden", priority.length === 0);
+  els.priorityCards.innerHTML = priority.map(card).join("");
 
   renderGroups(readings);
   renderTable(readings);

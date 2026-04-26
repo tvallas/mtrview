@@ -367,16 +367,69 @@ tr.problem td {
 
 @media (max-width: 640px) {
   .topbar {
+    position: static;
     align-items: flex-start;
-    flex-direction: column;
+    gap: 0.45rem;
+    min-height: 0;
+    padding: 0.45rem 0.65rem 0.55rem;
   }
 
   .brand-logo {
-    width: min(12rem, 72vw);
+    width: min(8.5rem, 46vw);
   }
 
-  .header-metrics,
+  .header-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .metric-tile {
+    min-width: 0;
+    padding: 0.35rem 0.45rem;
+  }
+
+  .metric-tile span {
+    font-size: 0.65rem;
+  }
+
+  .metric-tile strong {
+    margin-top: 0.12rem;
+    font-size: 0.95rem;
+  }
+
+  .status-tile strong {
+    font-size: 0.78rem;
+  }
+
+  .icon-button {
+    grid-column: span 2;
+    min-height: 2rem;
+    padding: 0.25rem 0.5rem;
+  }
+
   .controls {
+    position: static;
     grid-template-columns: 1fr;
+  }
+
+  main {
+    padding-top: 0.55rem;
+  }
+
+  .priority-section,
+  .grouped-list,
+  .table-wrap {
+    margin-top: 0.75rem;
+  }
+
+  th,
+  td {
+    padding: 0.58rem 0.65rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .header-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
