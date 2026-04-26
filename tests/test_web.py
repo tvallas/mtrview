@@ -72,7 +72,9 @@ def test_dashboard_html_smoke() -> None:
     assert response.status_code == 200
     assert "mtrview" in response.text
     assert "MTRVIEW_INITIAL_DATA" in response.text
+    assert "/favicon.ico" in response.text
     assert "favicon.png" in response.text
+    assert "apple-touch-icon.png" in response.text
     assert "mtrview-logo.png" in response.text
     assert "Latest mtr2mqtt summaries from MQTT" not in response.text
     assert 'id="tableView" class="table-wrap"' in response.text
@@ -102,3 +104,12 @@ def test_api_summary_exposes_age_seconds_for_client_side_ticking() -> None:
 
     assert response.status_code == 200
     assert "age_seconds" in response.json()["readings"][0]
+
+
+def test_favicon_ico_route() -> None:
+    app = create_app(Settings(mqtt_enabled=False))
+    with TestClient(app) as client:
+        response = client.get("/favicon.ico")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/x-icon"

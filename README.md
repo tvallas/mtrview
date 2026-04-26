@@ -5,9 +5,9 @@
 # mtrview
 
 mtrview is a small standalone web dashboard for retained JSON summaries published by
-[mtr2mqtt](https://github.com/tvallas/mtr2mqtt). It is a sibling project, not a change inside
-mtr2mqtt: MQTT remains the backend data source, and mtrview focuses only on a human-friendly latest
-state view.
+[mtr2mqtt](https://github.com/tvallas/mtr2mqtt). mtr2mqtt writes the measurement summaries to MQTT;
+mtrview subscribes to those topics and turns the latest values into a simple human-friendly
+dashboard.
 
 The app subscribes to summary topics such as `summary/<receiver>`, keeps the latest summary per
 receiver in memory, normalizes transmitter readings, and serves a dark auto-updating dashboard at
