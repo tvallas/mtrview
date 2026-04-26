@@ -1,6 +1,6 @@
 [project]
 name = "mtrview"
-version = "0.1.2"
+version = "0.2.0"
 description = "Human-friendly dashboard for mtr2mqtt summary topics"
 readme = "README.md"
 authors = [
