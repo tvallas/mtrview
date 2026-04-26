@@ -26,24 +26,24 @@
         <h1>mtrview</h1>
       </div>
       <div class="header-metrics" aria-label="Summary">
-        <article class="metric-tile">
-          <span>Total</span><strong id="countTotal">0</strong>
+        <article class="metric-tile summary-tile">
+          <span>Sensors</span>
+          <strong class="count-line">
+            <b id="countTotal">0</b> total
+            <b id="countOffline">0</b> offline
+          </strong>
         </article>
-        <article class="metric-tile">
-          <span>Online</span><strong id="countOnline">0</strong>
+        <article class="metric-tile status-tile connection-tile">
+          <span>Status</span>
+          <strong>
+            <span id="refreshTime">now</span>
+            <span id="mqttStatus">unknown</span>
+          </strong>
         </article>
-        <article class="metric-tile">
-          <span>Offline</span><strong id="countOffline">0</strong>
-        </article>
-        <article class="metric-tile">
-          <span>Receivers</span><strong id="countReceivers">0</strong>
-        </article>
-        <article class="metric-tile status-tile">
-          <span>Refresh</span><strong id="refreshTime">now</strong>
-        </article>
-        <article class="metric-tile status-tile">
-          <span>MQTT</span><strong id="mqttStatus">unknown</strong>
-        </article>
+        <div class="view-toggle header-view-toggle" role="group" aria-label="View">
+          <button id="tableViewButton" class="active" type="button">Table</button>
+          <button id="cardViewButton" type="button">Cards</button>
+        </div>
         <button
           id="controlsToggle"
           class="icon-button"
@@ -52,7 +52,7 @@
           aria-expanded="false"
           title="Show filters"
         >
-          Show filters
+          Filters
         </button>
       </div>
     </header>
@@ -81,10 +81,6 @@
           <option value="receiver">Receiver</option>
           <option value="transmitter_id">Transmitter</option>
         </select>
-        <div class="view-toggle" role="group" aria-label="View">
-          <button id="cardViewButton" type="button">Cards</button>
-          <button id="tableViewButton" class="active" type="button">Table</button>
-        </div>
       </section>
 
       <section id="prioritySection" class="priority-section hidden">

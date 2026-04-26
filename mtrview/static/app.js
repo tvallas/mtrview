@@ -12,9 +12,7 @@ const els = {
   mqttStatus: document.getElementById("mqttStatus"),
   counts: {
     total: document.getElementById("countTotal"),
-    online: document.getElementById("countOnline"),
     offline: document.getElementById("countOffline"),
-    receivers: document.getElementById("countReceivers"),
   },
   search: document.getElementById("searchInput"),
   status: document.getElementById("statusFilter"),
@@ -196,9 +194,7 @@ function textValue(reading, key) {
 function render() {
   const counts = state.data.counts || {};
   els.counts.total.textContent = counts.total ?? 0;
-  els.counts.online.textContent = counts.online ?? 0;
   els.counts.offline.textContent = counts.offline ?? 0;
-  els.counts.receivers.textContent = counts.receivers ?? 0;
   fillSelect(els.zone, state.data.zones || [], "All zones");
   fillSelect(els.receiver, state.data.receivers || [], "All receivers");
 
@@ -222,7 +218,7 @@ function setMqttStatus(connected, message) {
   els.mqttStatus.textContent = statusText;
   els.mqttStatus.title = connected ? "MQTT connected" : message || "MQTT disconnected";
   els.mqttStatus.closest(".metric-tile").className =
-    `metric-tile status-tile ${connected ? "ok" : "offline"}`;
+    `metric-tile status-tile connection-tile ${connected ? "ok" : "offline"}`;
 }
 
 function mqttStatusLabel(message) {
@@ -469,8 +465,8 @@ els.tableButton.addEventListener("click", () => {
 els.controlsToggle.addEventListener("click", () => {
   const collapsed = document.body.classList.toggle("controls-collapsed");
   els.controlsToggle.setAttribute("aria-expanded", String(!collapsed));
-  els.controlsToggle.textContent = collapsed ? "Show filters" : "Hide filters";
   els.controlsToggle.title = collapsed ? "Show filters" : "Hide filters";
+  els.controlsToggle.classList.toggle("active", !collapsed);
 });
 
 render();
