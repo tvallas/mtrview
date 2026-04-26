@@ -21,6 +21,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
@@ -32,3 +35,43 @@ jobs:
           load: false
           tags: mtrview:pr-smoke
 
+      - name: Build ARMv6 Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/arm/v6
+          push: false
+          load: true
+          tags: mtrview:pr-armv6
+
+      - name: Run ARMv6 Docker image
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cleanup() {
+            status=$?
+            if [ "$status" -ne 0 ]; then
+              docker logs mtrview-pr-armv6 || true
+            fi
+            docker rm -f mtrview-pr-armv6 || true
+            exit "$status"
+          }
+          trap cleanup EXIT
+
+          docker run \
+            --detach \
+            --name mtrview-pr-armv6 \
+            --platform linux/arm/v6 \
+            --publish 8000:8000 \
+            --env MTRVIEW_MQTT_ENABLED=false \
+            mtrview:pr-armv6
+
+          for attempt in {1..30}; do
+            if curl -fsS http://localhost:8000/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          exit 1

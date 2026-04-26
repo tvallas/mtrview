@@ -68,6 +68,11 @@ docker run --rm -p 8000:8000 \
   mtrview
 ```
 
+Published Docker images support `linux/amd64`, `linux/arm64`, `linux/arm/v7`, and
+`linux/arm/v6` for Pi Zero-class 32-bit ARM devices. The image intentionally uses Uvicorn without
+optional native performance extras so old Raspberry Pi targets can install dependencies without a
+compiler and the runtime image stays small.
+
 ## Dashboard
 
 The UI is server-rendered first, with a small vanilla JavaScript refresh loop that fetches
