@@ -72,6 +72,8 @@ def test_dashboard_html_smoke() -> None:
     assert response.status_code == 200
     assert "mtrview" in response.text
     assert "MTRVIEW_INITIAL_DATA" in response.text
+    assert "favicon.png" in response.text
+    assert "mtrview-logo.png" in response.text
     assert 'id="tableView" class="table-wrap"' in response.text
     assert 'data-sort="status"' in response.text
 

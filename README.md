@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="mtrview/static/mtrview-logo.png" alt="mtrview" width="360">
+</p>
+
 # mtrview
 
 mtrview is a small standalone web dashboard for retained JSON summaries published by
@@ -78,4 +82,3 @@ filters, card and compact table views, and a priority section for stale or offli
 uv run pytest
 uv run ruff check .
 ```
-

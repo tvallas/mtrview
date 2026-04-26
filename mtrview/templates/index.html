@@ -4,11 +4,17 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>mtrview</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', path='favicon.png') }}" />
     <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}" />
   </head>
   <body>
     <header class="topbar">
-      <div>
+      <div class="brand">
+        <img
+          class="brand-logo"
+          src="{{ url_for('static', path='mtrview-logo.png') }}"
+          alt="mtrview"
+        />
         <h1>mtrview</h1>
         <p>Latest mtr2mqtt summaries from MQTT</p>
       </div>
