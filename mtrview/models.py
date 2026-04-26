@@ -19,8 +19,6 @@ class ReadingView:
     status: str
     status_code: int | None
     age_seconds: int | None
-    stale: bool
-    critical_stale: bool
     problem: bool
     status_label: str
     sort_key: str

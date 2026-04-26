@@ -34,8 +34,6 @@ class Settings:
     mqtt_topics: tuple[str, ...] = ("summary/#",)
     mqtt_client_id: str = "mtrview"
     mqtt_keepalive: int = 60
-    stale_after_seconds: int = 3600
-    critical_stale_after_seconds: int = 21600
     http_host: str = "0.0.0.0"
     http_port: int = 8000
     display_timezone: str = "UTC"
@@ -52,11 +50,6 @@ class Settings:
             mqtt_topics=_get_topics("MTRVIEW_MQTT_TOPICS", cls.mqtt_topics),
             mqtt_client_id=os.getenv("MTRVIEW_MQTT_CLIENT_ID", cls.mqtt_client_id),
             mqtt_keepalive=_get_int("MTRVIEW_MQTT_KEEPALIVE", cls.mqtt_keepalive),
-            stale_after_seconds=_get_int("MTRVIEW_STALE_AFTER_SECONDS", cls.stale_after_seconds),
-            critical_stale_after_seconds=_get_int(
-                "MTRVIEW_CRITICAL_STALE_AFTER_SECONDS",
-                cls.critical_stale_after_seconds,
-            ),
             http_host=os.getenv("MTRVIEW_HTTP_HOST", cls.http_host),
             http_port=_get_int("MTRVIEW_HTTP_PORT", cls.http_port),
             display_timezone=os.getenv("MTRVIEW_DISPLAY_TIMEZONE", cls.display_timezone),

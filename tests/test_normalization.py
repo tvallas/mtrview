@@ -28,7 +28,7 @@ def test_normalizes_summary_with_full_metadata() -> None:
     readings = normalize_summary(
         "ignored",
         payload,
-        Settings(stale_after_seconds=3600),
+        Settings(),
         now=datetime(2026, 4, 26, 12, 5, tzinfo=UTC),
     )
 
@@ -38,8 +38,8 @@ def test_normalizes_summary_with_full_metadata() -> None:
     assert reading.transmitter_id == "15006"
     assert reading.display_name == "Kids room Temperature"
     assert reading.age_seconds == 81
-    assert reading.stale is False
-    assert reading.status_label == "ok"
+    assert reading.problem is False
+    assert reading.status_label == "online"
 
 
 def test_normalizes_partial_metadata_with_placeholders() -> None:
@@ -55,7 +55,7 @@ def test_normalizes_partial_metadata_with_placeholders() -> None:
                 }
             }
         },
-        Settings(stale_after_seconds=3600),
+        Settings(),
         now=datetime(2026, 4, 26, 11, 1, tzinfo=UTC),
     )
 
@@ -67,9 +67,9 @@ def test_normalizes_partial_metadata_with_placeholders() -> None:
     assert reading.unit == ""
 
 
-def test_stale_and_missing_timestamp_are_problem_states() -> None:
-    settings = Settings(stale_after_seconds=10, critical_stale_after_seconds=20)
-    stale = normalize_summary(
+def test_old_or_missing_timestamps_do_not_change_status() -> None:
+    settings = Settings()
+    old = normalize_summary(
         "A1",
         {"transmitters": {"1": {"measured_at": "2026-04-26T10:00:00Z", "status": "online"}}},
         settings,
@@ -82,9 +82,20 @@ def test_stale_and_missing_timestamp_are_problem_states() -> None:
         now=datetime(2026, 4, 26, 10, 0, 30, tzinfo=UTC),
     )[0]
 
-    assert stale.stale is True
-    assert stale.critical_stale is True
-    assert stale.status_label == "critical stale"
-    assert missing.stale is True
+    assert old.problem is False
+    assert old.status_label == "online"
     assert missing.age_seconds is None
-    assert missing.problem is True
+    assert missing.problem is False
+    assert missing.status_label == "online"
+
+
+def test_non_online_status_is_problem_state() -> None:
+    reading = normalize_summary(
+        "A1",
+        {"transmitters": {"1": {"status": "offline", "status_code": 0}}},
+        Settings(),
+        now=datetime(2026, 4, 26, 10, 0, 30, tzinfo=UTC),
+    )[0]
+
+    assert reading.problem is True
+    assert reading.status_label == "offline"

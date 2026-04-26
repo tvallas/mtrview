@@ -95,7 +95,7 @@ main {
 
 .summary-strip {
   display: grid;
-  grid-template-columns: repeat(5, minmax(8rem, 1fr));
+  grid-template-columns: repeat(4, minmax(8rem, 1fr));
   gap: 0.75rem;
 }
 
@@ -201,10 +201,6 @@ button.active {
   border-color: rgba(248, 81, 73, 0.65);
 }
 
-.sensor-card.stale {
-  border-color: rgba(210, 153, 34, 0.75);
-}
-
 .card-head {
   display: flex;
   justify-content: space-between;
@@ -247,18 +243,15 @@ button.active {
   white-space: nowrap;
 }
 
-.badge.ok {
+.badge.ok,
+.badge.online {
   color: #7ee787;
   border-color: rgba(46, 160, 67, 0.6);
 }
 
-.badge.stale,
-.badge.critical-stale {
-  color: #f2cc60;
-  border-color: rgba(210, 153, 34, 0.7);
-}
-
-.badge.offline {
+.badge.problem,
+.badge.offline,
+.badge.unknown {
   color: #ff9b96;
   border-color: rgba(248, 81, 73, 0.7);
 }
@@ -329,10 +322,6 @@ th {
 
 tr.problem td {
   background: rgba(248, 81, 73, 0.08);
-}
-
-tr.stale td {
-  background: rgba(210, 153, 34, 0.08);
 }
 
 @media (max-width: 950px) {

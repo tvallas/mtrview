@@ -12,7 +12,6 @@ const els = {
   counts: {
     total: document.getElementById("countTotal"),
     online: document.getElementById("countOnline"),
-    stale: document.getElementById("countStale"),
     offline: document.getElementById("countOffline"),
     receivers: document.getElementById("countReceivers"),
   },
@@ -44,9 +43,7 @@ const sortDefaults = {
 };
 
 function readingStatus(reading) {
-  if (reading.status !== "online") return "offline";
-  if (reading.stale) return "stale";
-  return "ok";
+  return reading.status || "unknown";
 }
 
 function ageLabel(seconds) {
@@ -80,9 +77,9 @@ function escapeHtml(value) {
 
 function card(reading) {
   const status = readingStatus(reading);
-  const badgeClass = reading.status_label.replace(" ", "-");
+  const badgeClass = reading.problem ? "problem" : "online";
   return `
-    <article class="sensor-card ${reading.problem ? "problem" : ""} ${reading.stale ? "stale" : ""}">
+    <article class="sensor-card ${reading.problem ? "problem" : ""}">
       <div class="card-head">
         <div>
           <div class="name">${escapeHtml(reading.display_name)}</div>
@@ -130,7 +127,9 @@ function filteredReadings() {
       .join(" ")
       .toLowerCase();
     return (
-      (status === "all" || status === statusValue) &&
+      (status === "all" ||
+        status === statusValue ||
+        (status === "problem" && reading.problem)) &&
       (zone === "all" || reading.zone === zone) &&
       (receiver === "all" || reading.receiver === receiver) &&
       (!search || haystack.includes(search))
@@ -161,10 +160,7 @@ function compareReadings(a, b) {
 }
 
 function statusRank(reading) {
-  if (reading.status !== "online") return 3;
-  if (reading.critical_stale) return 2;
-  if (reading.stale) return 1;
-  return 0;
+  return reading.status === "online" ? 0 : 1;
 }
 
 function compareValues(a, b) {
@@ -187,7 +183,6 @@ function render() {
   const counts = state.data.counts || {};
   els.counts.total.textContent = counts.total ?? 0;
   els.counts.online.textContent = counts.online ?? 0;
-  els.counts.stale.textContent = counts.stale ?? 0;
   els.counts.offline.textContent = counts.offline ?? 0;
   els.counts.receivers.textContent = counts.receivers ?? 0;
   fillSelect(els.zone, state.data.zones || [], "All zones");
@@ -202,7 +197,7 @@ function render() {
   const priority = readings.filter((reading) => reading.problem).slice(0, 12);
   els.priorityCards.innerHTML = priority.length
     ? priority.map(card).join("")
-    : '<p class="empty">No stale or offline sensors.</p>';
+    : '<p class="empty">No non-online sensors.</p>';
 
   renderGroups(readings);
   renderTable(readings);
@@ -242,9 +237,10 @@ function renderTable(readings) {
   els.sensorTable.innerHTML = readings
     .map((reading) => {
       const status = readingStatus(reading);
+      const badgeClass = reading.problem ? "problem" : "online";
       return `
-        <tr class="${reading.problem ? "problem" : ""} ${reading.stale ? "stale" : ""}">
-          <td><span class="badge ${escapeHtml(status)}">${escapeHtml(reading.status_label)}</span></td>
+        <tr class="${reading.problem ? "problem" : ""}">
+          <td><span class="badge ${escapeHtml(badgeClass)}">${escapeHtml(reading.status_label || status)}</span></td>
           <td>${escapeHtml(reading.location)}</td>
           <td>${escapeHtml(reading.quantity)}</td>
           <td>${escapeHtml(fmtValue(reading.value))}</td>

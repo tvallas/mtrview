@@ -35,8 +35,7 @@
       <section class="summary-strip" aria-label="Summary">
         <article><span>Total</span><strong id="countTotal">0</strong></article>
         <article><span>Online</span><strong id="countOnline">0</strong></article>
-        <article><span>Stale</span><strong id="countStale">0</strong></article>
-        <article><span>Offline</span><strong id="countOffline">0</strong></article>
+        <article><span>Not online</span><strong id="countOffline">0</strong></article>
         <article><span>Receivers</span><strong id="countReceivers">0</strong></article>
       </section>
 
@@ -44,9 +43,8 @@
         <input id="searchInput" type="search" placeholder="Search sensors" />
         <select id="statusFilter" aria-label="Filter by status">
           <option value="all">All statuses</option>
-          <option value="ok">OK</option>
-          <option value="stale">Stale</option>
-          <option value="offline">Offline</option>
+          <option value="online">Online</option>
+          <option value="problem">Not online</option>
         </select>
         <select id="zoneFilter" aria-label="Filter by zone">
           <option value="all">All zones</option>

@@ -36,8 +36,6 @@ Settings are read from environment variables:
 | `MTRVIEW_MQTT_USERNAME` | unset |
 | `MTRVIEW_MQTT_PASSWORD` | unset |
 | `MTRVIEW_MQTT_TOPICS` | `summary/#` |
-| `MTRVIEW_STALE_AFTER_SECONDS` | `3600` |
-| `MTRVIEW_CRITICAL_STALE_AFTER_SECONDS` | `21600` |
 | `MTRVIEW_HTTP_HOST` | `0.0.0.0` |
 | `MTRVIEW_HTTP_PORT` | `8000` |
 | `MTRVIEW_REFRESH_INTERVAL_SECONDS` | `20` |
@@ -74,7 +72,7 @@ docker run --rm -p 8000:8000 \
 
 The UI is server-rendered first, with a small vanilla JavaScript refresh loop that fetches
 `/api/summary`. It includes summary counts, MQTT connection state, search, status/zone/receiver
-filters, card and compact table views, and a priority section for stale or offline readings.
+filters, card and compact table views, and a priority section for non-online readings.
 
 ## Development
 

@@ -27,7 +27,7 @@ def parse_timestamp(value: Any) -> datetime | None:
 def normalize_summary(
     receiver_hint: str,
     payload: dict[str, Any],
-    settings: Settings,
+    _settings: Settings,
     now: datetime | None = None,
 ) -> list[ReadingView]:
     now = now or datetime.now(UTC)
@@ -51,7 +51,6 @@ def normalize_summary(
                 transmitter_id=str(transmitter_id),
                 raw=raw_reading,
                 summary_updated_at=updated_at,
-                settings=settings,
                 now=now,
             )
         )
@@ -63,7 +62,6 @@ def normalize_transmitter(
     transmitter_id: str,
     raw: dict[str, Any],
     summary_updated_at: str | None,
-    settings: Settings,
     now: datetime,
 ) -> ReadingView:
     location = _clean(raw.get("location"), "Unknown location")
@@ -79,11 +77,8 @@ def normalize_transmitter(
     if measured_dt is not None:
         age_seconds = max(0, int((now - measured_dt).total_seconds()))
 
-    stale = age_seconds is None or age_seconds >= settings.stale_after_seconds
-    critical_stale = age_seconds is None or age_seconds >= settings.critical_stale_after_seconds
-    online = status == "online"
-    problem = (not online) or stale
-    status_label = _status_label(status, stale, critical_stale)
+    problem = status != "online"
+    status_label = _status_label(status)
     display_name = _display_name(location, quantity, description, transmitter_id)
     sort_key = "|".join(
         [
@@ -110,8 +105,6 @@ def normalize_transmitter(
         status=status,
         status_code=status_code,
         age_seconds=age_seconds,
-        stale=stale,
-        critical_stale=critical_stale,
         problem=problem,
         status_label=status_label,
         sort_key=sort_key,
@@ -130,14 +123,10 @@ def _display_name(location: str, quantity: str, description: str, transmitter_id
     return f"Transmitter {transmitter_id}"
 
 
-def _status_label(status: str, stale: bool, critical_stale: bool) -> str:
-    if status != "online":
-        return "offline"
-    if critical_stale:
-        return "critical stale"
-    if stale:
-        return "stale"
-    return "ok"
+def _status_label(status: str) -> str:
+    if status == "online":
+        return "online"
+    return status
 
 
 def _clean(value: Any, default: str) -> str:

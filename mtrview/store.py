@@ -72,10 +72,7 @@ class SummaryStore:
 def _counts(readings: list[ReadingView], receiver_count: int) -> dict[str, int]:
     return {
         "total": len(readings),
-        "online": sum(
-            1 for reading in readings if reading.status == "online" and not reading.stale
-        ),
-        "stale": sum(1 for reading in readings if reading.stale),
+        "online": sum(1 for reading in readings if reading.status == "online"),
         "offline": sum(1 for reading in readings if reading.status != "online"),
         "receivers": receiver_count,
     }
