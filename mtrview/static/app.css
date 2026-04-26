@@ -32,7 +32,8 @@ body {
   justify-content: space-between;
   gap: 1rem;
   align-items: center;
-  padding: 1rem clamp(1rem, 4vw, 2.5rem);
+  min-height: 4.5rem;
+  padding: 0.65rem clamp(1rem, 4vw, 2.5rem);
   background: rgba(13, 17, 23, 0.94);
   border-bottom: 1px solid var(--line);
   backdrop-filter: blur(12px);
@@ -50,9 +51,7 @@ h1 {
 }
 
 .brand {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  column-gap: 0.9rem;
+  display: flex;
   align-items: center;
 }
 
@@ -65,12 +64,7 @@ h1 {
   white-space: nowrap;
 }
 
-.brand p {
-  grid-column: 2;
-}
-
 .brand-logo {
-  grid-row: 1 / span 2;
   width: min(13.5rem, 50vw);
   height: auto;
   display: block;
@@ -83,7 +77,6 @@ h2 {
   text-transform: uppercase;
 }
 
-.topbar p,
 .topbar-meta {
   color: var(--muted);
   font-size: 0.9rem;
@@ -357,14 +350,6 @@ tr.stale td {
   .topbar {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .brand {
-    grid-template-columns: 1fr;
-  }
-
-  .brand p {
-    grid-column: 1;
   }
 
   .brand-logo {
