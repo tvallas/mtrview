@@ -84,6 +84,8 @@ def test_dashboard_html_smoke() -> None:
     assert "Show filters" in response.text
     assert 'id="prioritySection" class="priority-section hidden"' in response.text
     assert 'id="tableView" class="table-wrap"' in response.text
+    assert 'id="sensorDetailOverlay"' in response.text
+    assert 'role="dialog"' in response.text
     assert 'data-sort="location"' in response.text
     assert 'data-sort="status"' not in response.text
 

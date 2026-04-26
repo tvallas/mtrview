@@ -4,6 +4,7 @@ const state = {
   view: "table",
   sortKey: "location",
   sortDirection: "asc",
+  selectedReadingKey: null,
 };
 
 const els = {
@@ -31,6 +32,9 @@ const els = {
   controls: document.getElementById("controls"),
   controlsToggle: document.getElementById("controlsToggle"),
   sortHeaders: document.querySelectorAll(".sort-header"),
+  detailOverlay: document.getElementById("sensorDetailOverlay"),
+  detailClose: document.getElementById("detailClose"),
+  sensorDetail: document.getElementById("sensorDetail"),
 };
 
 const sortDefaults = {
@@ -104,6 +108,10 @@ function sensorLabel(reading) {
     reading.display_name ||
     `Transmitter ${reading.transmitter_id}`;
   return [location, detail].filter(Boolean).join(" ") || reading.display_name;
+}
+
+function readingKey(reading) {
+  return `${reading.receiver}\u001f${reading.transmitter_id}`;
 }
 
 function fillSelect(select, values, allLabel) {
@@ -205,6 +213,7 @@ function render() {
 
   renderGroups(readings);
   renderTable(readings);
+  renderOpenDetails();
   renderSortHeaders();
 }
 
@@ -253,8 +262,16 @@ function groupBy(items, keyFn) {
 function renderTable(readings) {
   els.sensorTable.innerHTML = readings
     .map((reading) => {
+      const selected = state.selectedReadingKey === readingKey(reading);
       return `
-        <tr class="${reading.problem ? "problem" : ""}">
+        <tr
+          class="${reading.problem ? "problem" : ""}${selected ? " selected" : ""}"
+          data-receiver="${escapeHtml(reading.receiver)}"
+          data-transmitter="${escapeHtml(reading.transmitter_id)}"
+          tabindex="0"
+          role="button"
+          aria-label="Open ${escapeHtml(sensorLabel(reading))} details"
+        >
           <td class="sensor-cell">${escapeHtml(sensorLabel(reading))}</td>
           <td class="value-cell">${escapeHtml(fmtValue(reading.value))} <span>${escapeHtml(reading.unit)}</span></td>
           <td>${ageSpan(reading)}</td>
@@ -265,6 +282,69 @@ function renderTable(readings) {
       `;
     })
     .join("");
+}
+
+function renderOpenDetails() {
+  if (!state.selectedReadingKey || els.detailOverlay.classList.contains("hidden")) return;
+  const reading = state.data.readings.find((item) => readingKey(item) === state.selectedReadingKey);
+  if (!reading) {
+    closeDetails();
+    return;
+  }
+  renderDetails(reading);
+}
+
+function openDetails(reading) {
+  state.selectedReadingKey = readingKey(reading);
+  renderDetails(reading);
+  els.detailOverlay.classList.remove("hidden");
+  els.detailOverlay.setAttribute("aria-hidden", "false");
+  document.body.classList.add("detail-open");
+  els.detailClose.focus();
+  renderTable(filteredReadings());
+}
+
+function closeDetails() {
+  state.selectedReadingKey = null;
+  els.detailOverlay.classList.add("hidden");
+  els.detailOverlay.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("detail-open");
+  renderTable(filteredReadings());
+}
+
+function renderDetails(reading) {
+  const badgeClass = reading.problem ? "problem" : "online";
+  els.sensorDetail.innerHTML = `
+    <div class="detail-head">
+      <div>
+        <h2 id="detailTitle">${escapeHtml(sensorLabel(reading))}</h2>
+        <p>${escapeHtml(reading.zone)} · ${escapeHtml(reading.receiver)} / ${escapeHtml(reading.transmitter_id)}</p>
+      </div>
+      <span class="badge ${escapeHtml(badgeClass)}">${escapeHtml(reading.status_label)}</span>
+    </div>
+    <div class="detail-value">${escapeHtml(fmtValue(reading.value))} <span>${escapeHtml(reading.unit)}</span></div>
+    <dl class="detail-grid">
+      ${detailRow("Location", reading.location)}
+      ${detailRow("Quantity", reading.quantity)}
+      ${detailRow("Description", reading.description || "n/a")}
+      ${detailRow("Zone", reading.zone)}
+      ${detailRow("Status", reading.status_label)}
+      ${detailRow("Status code", reading.status_code ?? "n/a")}
+      ${detailRow("Updated", `updated ${plainAge(reading)} · ${reading.measured_at || "no timestamp"}`)}
+      ${detailRow("Receiver", reading.receiver)}
+      ${detailRow("Transmitter", reading.transmitter_id)}
+    </dl>
+  `;
+}
+
+function detailRow(label, value) {
+  return `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`;
+}
+
+function plainAge(reading) {
+  return reading.age_seconds === null || reading.age_seconds === undefined
+    ? "unknown age"
+    : ageLabel(reading.age_seconds + Math.floor((Date.now() - state.fetchedAt) / 1000));
 }
 
 function renderSortHeaders() {
@@ -299,6 +379,7 @@ function tickRelativeAges() {
       element.textContent = ageLabel(baseAge + elapsedSeconds);
     }
   });
+  renderOpenDetails();
 }
 
 [els.search, els.status, els.zone, els.receiver].forEach((el) => {
@@ -315,6 +396,48 @@ els.sortHeaders.forEach((button) => {
     setSort(button.dataset.sort);
   });
 });
+
+els.sensorTable.addEventListener("click", (event) => {
+  const row = rowFromEvent(event);
+  if (!row) return;
+  const reading = findReadingForRow(row);
+  if (reading) openDetails(reading);
+});
+
+els.sensorTable.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  const row = rowFromEvent(event);
+  if (!row) return;
+  event.preventDefault();
+  const reading = findReadingForRow(row);
+  if (reading) openDetails(reading);
+});
+
+els.detailClose.addEventListener("click", closeDetails);
+
+els.detailOverlay.addEventListener("click", (event) => {
+  if (event.target === els.detailOverlay) closeDetails();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !els.detailOverlay.classList.contains("hidden")) {
+    closeDetails();
+  }
+});
+
+function findReadingForRow(row) {
+  return state.data.readings.find((reading) => {
+    return (
+      reading.receiver === row.dataset.receiver &&
+      reading.transmitter_id === row.dataset.transmitter
+    );
+  });
+}
+
+function rowFromEvent(event) {
+  if (!(event.target instanceof Element)) return null;
+  return event.target.closest("tr[data-receiver][data-transmitter]");
+}
 
 function setSort(key) {
   if (state.sortKey === key) {

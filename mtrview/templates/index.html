@@ -128,6 +128,20 @@
       </section>
     </main>
 
+    <div id="sensorDetailOverlay" class="detail-overlay hidden" aria-hidden="true">
+      <section
+        class="detail-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="detailTitle"
+      >
+        <button id="detailClose" class="detail-close" type="button" aria-label="Close details">
+          &times;
+        </button>
+        <div id="sensorDetail"></div>
+      </section>
+    </div>
+
     <script>
       window.MTRVIEW_INITIAL_DATA = {{ snapshot | tojson }};
       window.MTRVIEW_REFRESH_INTERVAL = {{ settings.refresh_interval_seconds }};
