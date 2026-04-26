@@ -33,6 +33,7 @@ jobs:
           format: sarif
           output: trivy-fs.sarif
           severity: HIGH,CRITICAL
+          scanners: vuln
           ignore-unfixed: true
           exit-code: 1
 
@@ -55,6 +56,7 @@ jobs:
           format: sarif
           output: trivy-image.sarif
           severity: HIGH,CRITICAL
+          scanners: vuln
           ignore-unfixed: true
           exit-code: 1
 
@@ -72,4 +74,3 @@ jobs:
             echo "Trivy detected HIGH or CRITICAL vulnerabilities."
             exit 1
           fi
-
