@@ -4,6 +4,13 @@
 
 # mtrview
 
+[![CI](https://github.com/tvallas/mtrview/actions/workflows/ci.yml/badge.svg)](https://github.com/tvallas/mtrview/actions/workflows/ci.yml)
+[![Docker](https://github.com/tvallas/mtrview/actions/workflows/docker.yml/badge.svg)](https://github.com/tvallas/mtrview/actions/workflows/docker.yml)
+[![Trivy](https://github.com/tvallas/mtrview/actions/workflows/trivy.yml/badge.svg)](https://github.com/tvallas/mtrview/actions/workflows/trivy.yml)
+[![PyPI version](https://img.shields.io/pypi/v/mtrview.svg)](https://pypi.org/project/mtrview/)
+[![Python 3.11-3.13](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)](https://github.com/tvallas/mtrview/blob/master/pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 mtrview is a small standalone web dashboard for retained JSON summaries published by
 [mtr2mqtt](https://github.com/tvallas/mtr2mqtt). mtr2mqtt writes the measurement summaries to MQTT;
 mtrview subscribes to those topics and turns the latest values into a simple human-friendly
