@@ -72,7 +72,6 @@
           <option value="all">All receivers</option>
         </select>
         <select id="sortSelect" aria-label="Sort sensors">
-          <option value="status">Status first</option>
           <option value="location">Location</option>
           <option value="updated">Latest updated</option>
           <option value="quantity">Quantity</option>
@@ -102,31 +101,22 @@
         <table>
           <thead>
             <tr>
-              <th aria-sort="descending">
-                <button class="sort-header active" type="button" data-sort="status">Status</button>
-              </th>
-              <th>
-                <button class="sort-header" type="button" data-sort="location">Location</button>
-              </th>
-              <th>
-                <button class="sort-header" type="button" data-sort="quantity">Quantity</button>
+              <th aria-sort="ascending">
+                <button class="sort-header active" type="button" data-sort="location">Sensor</button>
               </th>
               <th>
                 <button class="sort-header" type="button" data-sort="value">Value</button>
               </th>
               <th>
-                <button class="sort-header" type="button" data-sort="unit">Unit</button>
-              </th>
-              <th>
                 <button class="sort-header" type="button" data-sort="updated">Updated</button>
               </th>
-              <th>
+              <th class="optional-column">
                 <button class="sort-header" type="button" data-sort="zone">Zone</button>
               </th>
-              <th>
+              <th class="optional-column">
                 <button class="sort-header" type="button" data-sort="receiver">Receiver</button>
               </th>
-              <th>
+              <th class="optional-column">
                 <button class="sort-header" type="button" data-sort="transmitter_id">
                   Transmitter
                 </button>

@@ -98,7 +98,7 @@ main {
 }
 
 .metric-tile {
-  min-width: 5.8rem;
+  min-width: 0;
   padding: 0.45rem 0.65rem;
 }
 
@@ -111,9 +111,12 @@ main {
 
 .metric-tile strong {
   display: block;
+  max-width: 100%;
   margin-top: 0.2rem;
+  overflow: hidden;
   font-size: 1.25rem;
   line-height: 1.05;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -289,7 +292,7 @@ button.active {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 60rem;
+  min-width: 46rem;
   background: var(--panel);
 }
 
@@ -342,6 +345,28 @@ th {
 
 tr.problem td {
   background: rgba(248, 81, 73, 0.08);
+}
+
+tr.problem .sensor-cell {
+  box-shadow: inset 3px 0 0 rgba(248, 81, 73, 0.8);
+}
+
+.sensor-cell {
+  min-width: 14rem;
+  font-weight: 650;
+}
+
+.value-cell {
+  min-width: 6rem;
+  font-size: 1.1rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.value-cell span {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 650;
 }
 
 @media (max-width: 950px) {
@@ -425,6 +450,23 @@ tr.problem td {
   th,
   td {
     padding: 0.58rem 0.65rem;
+  }
+
+  table {
+    min-width: 0;
+  }
+
+  .optional-column {
+    display: none;
+  }
+
+  .sensor-cell {
+    min-width: 0;
+  }
+
+  .value-cell {
+    min-width: 4.4rem;
+    text-align: right;
   }
 }
 

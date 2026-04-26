@@ -2,8 +2,8 @@ const state = {
   data: window.MTRVIEW_INITIAL_DATA || { readings: [], counts: {}, zones: [], receivers: [] },
   fetchedAt: Date.now(),
   view: "table",
-  sortKey: "status",
-  sortDirection: "desc",
+  sortKey: "location",
+  sortDirection: "asc",
 };
 
 const els = {
@@ -34,7 +34,6 @@ const els = {
 };
 
 const sortDefaults = {
-  status: "desc",
   location: "asc",
   quantity: "asc",
   value: "asc",
@@ -97,6 +96,16 @@ function card(reading) {
   `;
 }
 
+function sensorLabel(reading) {
+  const location = reading.location === "Unknown location" ? "" : reading.location;
+  const detail =
+    reading.description ||
+    (reading.quantity === "Unknown measurement" ? "" : reading.quantity) ||
+    reading.display_name ||
+    `Transmitter ${reading.transmitter_id}`;
+  return [location, detail].filter(Boolean).join(" ") || reading.display_name;
+}
+
 function fillSelect(select, values, allLabel) {
   const previous = select.value;
   select.innerHTML = `<option value="all">${allLabel}</option>`;
@@ -148,9 +157,7 @@ function compareReadings(a, b) {
   const key = state.sortKey;
   let result = 0;
 
-  if (key === "status") {
-    result = statusRank(a) - statusRank(b);
-  } else if (key === "updated") {
+  if (key === "updated") {
     result = (a.age_seconds ?? 999999999) - (b.age_seconds ?? 999999999);
   } else if (key === "value") {
     result = compareValues(a.value, b.value);
@@ -160,10 +167,6 @@ function compareReadings(a, b) {
 
   if (result === 0) result = a.sort_key.localeCompare(b.sort_key);
   return result * direction;
-}
-
-function statusRank(reading) {
-  return reading.status === "online" ? 0 : 1;
 }
 
 function compareValues(a, b) {
@@ -192,8 +195,7 @@ function render() {
   fillSelect(els.receiver, state.data.receivers || [], "All receivers");
 
   const mqtt = state.data.mqtt || {};
-  els.mqttStatus.textContent = mqtt.connected ? "connected" : mqtt.error || "disconnected";
-  els.mqttStatus.closest(".metric-tile").className = `metric-tile status-tile ${mqtt.connected ? "ok" : "offline"}`;
+  setMqttStatus(mqtt.connected, mqtt.error || "disconnected");
   els.refreshTime.textContent = new Date().toLocaleTimeString();
 
   const readings = filteredReadings();
@@ -204,6 +206,19 @@ function render() {
   renderGroups(readings);
   renderTable(readings);
   renderSortHeaders();
+}
+
+function setMqttStatus(connected, message) {
+  const statusText = connected ? "connected" : mqttStatusLabel(message);
+  els.mqttStatus.textContent = statusText;
+  els.mqttStatus.title = connected ? "MQTT connected" : message || "MQTT disconnected";
+  els.mqttStatus.closest(".metric-tile").className =
+    `metric-tile status-tile ${connected ? "ok" : "offline"}`;
+}
+
+function mqttStatusLabel(message) {
+  if (message && message.toLowerCase().includes("refresh")) return "failed";
+  return "offline";
 }
 
 function renderGroups(readings) {
@@ -238,19 +253,14 @@ function groupBy(items, keyFn) {
 function renderTable(readings) {
   els.sensorTable.innerHTML = readings
     .map((reading) => {
-      const status = readingStatus(reading);
-      const badgeClass = reading.problem ? "problem" : "online";
       return `
         <tr class="${reading.problem ? "problem" : ""}">
-          <td><span class="badge ${escapeHtml(badgeClass)}">${escapeHtml(reading.status_label || status)}</span></td>
-          <td>${escapeHtml(reading.location)}</td>
-          <td>${escapeHtml(reading.quantity)}</td>
-          <td>${escapeHtml(fmtValue(reading.value))}</td>
-          <td>${escapeHtml(reading.unit)}</td>
+          <td class="sensor-cell">${escapeHtml(sensorLabel(reading))}</td>
+          <td class="value-cell">${escapeHtml(fmtValue(reading.value))} <span>${escapeHtml(reading.unit)}</span></td>
           <td>${ageSpan(reading)}</td>
-          <td>${escapeHtml(reading.zone)}</td>
-          <td>${escapeHtml(reading.receiver)}</td>
-          <td>${escapeHtml(reading.transmitter_id)}</td>
+          <td class="optional-column">${escapeHtml(reading.zone)}</td>
+          <td class="optional-column">${escapeHtml(reading.receiver)}</td>
+          <td class="optional-column">${escapeHtml(reading.transmitter_id)}</td>
         </tr>
       `;
     })
@@ -277,8 +287,7 @@ async function refresh() {
     state.fetchedAt = Date.now();
     render();
   } catch (error) {
-    els.mqttStatus.textContent = "Refresh failed";
-    els.mqttStatus.className = "pill offline";
+    setMqttStatus(false, "refresh failed");
   }
 }
 
