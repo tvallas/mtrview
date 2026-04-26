@@ -1,6 +1,8 @@
 const state = {
   data: window.MTRVIEW_INITIAL_DATA || { readings: [], counts: {}, zones: [], receivers: [] },
-  view: "cards",
+  view: "table",
+  sortKey: "status",
+  sortDirection: "desc",
 };
 
 const els = {
@@ -25,6 +27,19 @@ const els = {
   tableView: document.getElementById("tableView"),
   cardButton: document.getElementById("cardViewButton"),
   tableButton: document.getElementById("tableViewButton"),
+  sortHeaders: document.querySelectorAll(".sort-header"),
+};
+
+const sortDefaults = {
+  status: "desc",
+  location: "asc",
+  quantity: "asc",
+  value: "asc",
+  unit: "asc",
+  updated: "asc",
+  zone: "asc",
+  receiver: "asc",
+  transmitter_id: "asc",
 };
 
 function readingStatus(reading) {
@@ -114,13 +129,50 @@ function filteredReadings() {
     );
   });
 
-  readings.sort((a, b) => {
-    if (els.sort.value === "updated") return (a.age_seconds ?? 999999999) - (b.age_seconds ?? 999999999);
-    if (els.sort.value === "quantity") return a.quantity.localeCompare(b.quantity) || a.location.localeCompare(b.location);
-    if (els.sort.value === "location") return a.location.localeCompare(b.location) || a.quantity.localeCompare(b.quantity);
-    return Number(b.problem) - Number(a.problem) || Number(b.stale) - Number(a.stale) || a.sort_key.localeCompare(b.sort_key);
-  });
+  readings.sort(compareReadings);
   return readings;
+}
+
+function compareReadings(a, b) {
+  const direction = state.sortDirection === "desc" ? -1 : 1;
+  const key = state.sortKey;
+  let result = 0;
+
+  if (key === "status") {
+    result = statusRank(a) - statusRank(b);
+  } else if (key === "updated") {
+    result = (a.age_seconds ?? 999999999) - (b.age_seconds ?? 999999999);
+  } else if (key === "value") {
+    result = compareValues(a.value, b.value);
+  } else {
+    result = textValue(a, key).localeCompare(textValue(b, key));
+  }
+
+  if (result === 0) result = a.sort_key.localeCompare(b.sort_key);
+  return result * direction;
+}
+
+function statusRank(reading) {
+  if (reading.status !== "online") return 3;
+  if (reading.critical_stale) return 2;
+  if (reading.stale) return 1;
+  return 0;
+}
+
+function compareValues(a, b) {
+  const aNumber = typeof a === "number" ? a : Number(a);
+  const bNumber = typeof b === "number" ? b : Number(b);
+  const aMissing = a === null || a === undefined || a === "" || Number.isNaN(aNumber);
+  const bMissing = b === null || b === undefined || b === "" || Number.isNaN(bNumber);
+  if (aMissing && bMissing) return 0;
+  if (aMissing) return 1;
+  if (bMissing) return -1;
+  return aNumber - bNumber;
+}
+
+function textValue(reading, key) {
+  if (key === "transmitter_id") return reading.transmitter_id || "";
+  return String(reading[key] ?? "");
 }
 
 function render() {
@@ -146,6 +198,7 @@ function render() {
 
   renderGroups(readings);
   renderTable(readings);
+  renderSortHeaders();
 }
 
 function renderGroups(readings) {
@@ -198,6 +251,19 @@ function renderTable(readings) {
     .join("");
 }
 
+function renderSortHeaders() {
+  els.sortHeaders.forEach((button) => {
+    const tableHeader = button.closest("th");
+    const isActive = button.dataset.sort === state.sortKey;
+    button.classList.toggle("active", isActive);
+    button.dataset.direction = isActive ? state.sortDirection : "";
+    tableHeader.setAttribute(
+      "aria-sort",
+      isActive ? (state.sortDirection === "asc" ? "ascending" : "descending") : "none",
+    );
+  });
+}
+
 async function refresh() {
   try {
     const response = await fetch("/api/summary", { cache: "no-store" });
@@ -209,10 +275,31 @@ async function refresh() {
   }
 }
 
-[els.search, els.status, els.zone, els.receiver, els.sort].forEach((el) => {
+[els.search, els.status, els.zone, els.receiver].forEach((el) => {
   el.addEventListener("input", render);
   el.addEventListener("change", render);
 });
+
+els.sort.addEventListener("change", () => {
+  setSort(els.sort.value);
+});
+
+els.sortHeaders.forEach((button) => {
+  button.addEventListener("click", () => {
+    setSort(button.dataset.sort);
+  });
+});
+
+function setSort(key) {
+  if (state.sortKey === key) {
+    state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
+  } else {
+    state.sortKey = key;
+    state.sortDirection = sortDefaults[key] || "asc";
+  }
+  els.sort.value = state.sortKey;
+  render();
+}
 
 els.cardButton.addEventListener("click", () => {
   state.view = "cards";

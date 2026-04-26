@@ -274,6 +274,39 @@ th {
   text-transform: uppercase;
 }
 
+.sort-header {
+  display: inline-flex;
+  min-height: 1.6rem;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  text-transform: inherit;
+}
+
+.sort-header:hover,
+.sort-header.active {
+  color: var(--text);
+}
+
+.sort-header::after {
+  content: "";
+  width: 0.7rem;
+  color: var(--accent);
+}
+
+.sort-header.active[data-direction="asc"]::after {
+  content: "↑";
+}
+
+.sort-header.active[data-direction="desc"]::after {
+  content: "↓";
+}
+
 tr.problem td {
   background: rgba(248, 81, 73, 0.08);
 }
@@ -304,4 +337,3 @@ tr.stale td {
     grid-template-columns: 1fr;
   }
 }
-

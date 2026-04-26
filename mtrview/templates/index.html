@@ -46,10 +46,15 @@
           <option value="location">Location</option>
           <option value="updated">Latest updated</option>
           <option value="quantity">Quantity</option>
+          <option value="value">Value</option>
+          <option value="unit">Unit</option>
+          <option value="zone">Zone</option>
+          <option value="receiver">Receiver</option>
+          <option value="transmitter_id">Transmitter</option>
         </select>
         <div class="view-toggle" role="group" aria-label="View">
-          <button id="cardViewButton" class="active" type="button">Cards</button>
-          <button id="tableViewButton" type="button">Table</button>
+          <button id="cardViewButton" type="button">Cards</button>
+          <button id="tableViewButton" class="active" type="button">Table</button>
         </div>
       </section>
 
@@ -58,24 +63,44 @@
         <div id="priorityCards" class="card-grid"></div>
       </section>
 
-      <section id="cardView" class="grouped-list">
+      <section id="cardView" class="grouped-list hidden">
         <h2>All sensors</h2>
         <div id="sensorGroups"></div>
       </section>
 
-      <section id="tableView" class="table-wrap hidden">
+      <section id="tableView" class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Status</th>
-              <th>Location</th>
-              <th>Quantity</th>
-              <th>Value</th>
-              <th>Unit</th>
-              <th>Updated</th>
-              <th>Zone</th>
-              <th>Receiver</th>
-              <th>Transmitter</th>
+              <th aria-sort="descending">
+                <button class="sort-header active" type="button" data-sort="status">Status</button>
+              </th>
+              <th>
+                <button class="sort-header" type="button" data-sort="location">Location</button>
+              </th>
+              <th>
+                <button class="sort-header" type="button" data-sort="quantity">Quantity</button>
+              </th>
+              <th>
+                <button class="sort-header" type="button" data-sort="value">Value</button>
+              </th>
+              <th>
+                <button class="sort-header" type="button" data-sort="unit">Unit</button>
+              </th>
+              <th>
+                <button class="sort-header" type="button" data-sort="updated">Updated</button>
+              </th>
+              <th>
+                <button class="sort-header" type="button" data-sort="zone">Zone</button>
+              </th>
+              <th>
+                <button class="sort-header" type="button" data-sort="receiver">Receiver</button>
+              </th>
+              <th>
+                <button class="sort-header" type="button" data-sort="transmitter_id">
+                  Transmitter
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody id="sensorTable"></tbody>
@@ -90,4 +115,3 @@
     <script src="{{ url_for('static', path='app.js') }}"></script>
   </body>
 </html>
-
