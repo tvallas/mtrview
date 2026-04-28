@@ -29,6 +29,7 @@ def test_api_summary_shape() -> None:
               "measured_at": "2026-04-26T12:03:39Z",
               "status": "online",
               "status_code": 1,
+              "battery": 2.6,
               "unit": "°C",
               "value": 22.3,
               "zone": "Indoor"
@@ -47,6 +48,7 @@ def test_api_summary_shape() -> None:
     assert data["counts"]["total"] == 1
     assert data["receivers"] == ["A1"]
     assert data["readings"][0]["display_name"] == "Kids room Temperature"
+    assert data["readings"][0]["battery"] == 2.6
 
 
 def test_malformed_payload_does_not_replace_existing_state() -> None:

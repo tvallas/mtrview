@@ -71,6 +71,7 @@ def normalize_transmitter(
     unit = _clean(raw.get("unit"), "")
     status = _clean(raw.get("status"), "unknown").lower()
     status_code = _int_or_none(raw.get("status_code"))
+    battery = raw.get("battery")
     measured_at = _string_or_none(raw.get("measured_at"))
     measured_dt = parse_timestamp(measured_at)
     age_seconds = None
@@ -104,6 +105,7 @@ def normalize_transmitter(
         updated_at=summary_updated_at,
         status=status,
         status_code=status_code,
+        battery=battery,
         age_seconds=age_seconds,
         problem=problem,
         status_label=status_label,

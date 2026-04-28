@@ -18,6 +18,7 @@ class ReadingView:
     updated_at: str | None
     status: str
     status_code: int | None
+    battery: object | None
     age_seconds: int | None
     problem: bool
     status_label: str
