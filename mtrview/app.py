@@ -43,12 +43,15 @@ def create_app(settings: Settings | None = None) -> Starlette:
             "index.html",
             {
                 "settings": settings,
-                "snapshot": store.snapshot(),
+                "snapshot": _snapshot_with_mqtt(request),
                 "mqtt_status": request.app.state.mqtt_status(),
             },
         )
 
     async def api_summary(request: Request) -> JSONResponse:
+        return JSONResponse(_snapshot_with_mqtt(request))
+
+    def _snapshot_with_mqtt(request: Request) -> dict[str, object]:
         snapshot = store.snapshot()
         status = request.app.state.mqtt_status()
         snapshot["mqtt"] = {
@@ -56,7 +59,7 @@ def create_app(settings: Settings | None = None) -> Starlette:
             "error": status.error,
             "last_message_at": snapshot["last_message_at"],
         }
-        return JSONResponse(snapshot)
+        return snapshot
 
     async def health(request: Request) -> JSONResponse:
         status = request.app.state.mqtt_status()
