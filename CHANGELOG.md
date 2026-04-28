@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v0.3.0 (2026-04-28)
+
+### Chores
+
+- Add repository badges and dependabot
+  ([`3e802ec`](https://github.com/tvallas/mtrview/commit/3e802ec0965dde566786ae5858ded305d411447a))
+
+### Features
+
+- **ui**: Show battery status
+  ([`5b78c35`](https://github.com/tvallas/mtrview/commit/5b78c353c05d974783d79fa7081c9ebc9e71e0c9))
+
+
 ## v0.2.1 (2026-04-26)
 
 ### Bug Fixes
