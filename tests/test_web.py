@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+import re
+
 from starlette.testclient import TestClient
 
 from mtrview.app import create_app
@@ -74,6 +77,14 @@ def test_dashboard_html_smoke() -> None:
     assert response.status_code == 200
     assert "mtrview" in response.text
     assert "MTRVIEW_INITIAL_DATA" in response.text
+    initial_data_match = re.search(r"window\.MTRVIEW_INITIAL_DATA = (.*);", response.text)
+    assert initial_data_match is not None
+    initial_data = json.loads(initial_data_match.group(1))
+    assert initial_data["mqtt"] == {
+        "connected": False,
+        "error": "disabled",
+        "last_message_at": None,
+    }
     assert "/favicon.ico" in response.text
     assert "favicon.png" in response.text
     assert "apple-touch-icon.png" in response.text
