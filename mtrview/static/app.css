@@ -684,6 +684,10 @@ tr.problem .sensor-cell {
 }
 
 @media (max-width: 640px) {
+  body {
+    font-size: 0.88rem;
+  }
+
   .topbar {
     position: static;
     align-items: center;
@@ -773,7 +777,13 @@ tr.problem .sensor-cell {
 
   th,
   td {
-    padding: 0.58rem 0.65rem;
+    padding: 0.5rem 0.55rem;
+    font-size: 0.88rem;
+    line-height: 1.2;
+  }
+
+  th {
+    font-size: 0.68rem;
   }
 
   .battery-column,
@@ -818,11 +828,19 @@ tr.problem .sensor-cell {
 
   .sensor-cell {
     min-width: 0;
+    width: 48%;
+    font-size: 0.92rem;
+    line-height: 1.2;
   }
 
   .value-cell {
-    min-width: 4.4rem;
+    min-width: 4rem;
+    font-size: 0.96rem;
     text-align: right;
+  }
+
+  .value-cell span {
+    font-size: 0.74rem;
   }
 
   .detail-overlay {
