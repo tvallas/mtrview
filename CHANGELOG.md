@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.3.2 (2026-04-28)
+
+### Bug Fixes
+
+- **ui**: Reduce mobile table text size
+  ([`ac992e2`](https://github.com/tvallas/mtrview/commit/ac992e20494c775ef38b127f5645a0a97b001918))
+
+
 ## v0.3.1 (2026-04-28)
 
 ### Bug Fixes
