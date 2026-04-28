@@ -41,6 +41,7 @@ const sortDefaults = {
   value: "asc",
   unit: "asc",
   updated: "asc",
+  battery: "desc",
   zone: "asc",
   receiver: "asc",
   transmitter_id: "asc",
@@ -48,6 +49,57 @@ const sortDefaults = {
 
 function readingStatus(reading) {
   return reading.status || "unknown";
+}
+
+function batteryLabel(reading) {
+  const voltage = batteryVoltage(reading);
+  if (voltage === null) {
+    return "n/a";
+  }
+  if (voltage >= 3.1) return "full";
+  if (voltage >= 2.9) return "good";
+  if (voltage >= 2.7) return "medium";
+  if (voltage >= 2.6) return "low";
+  return "critical";
+}
+
+function batteryBadgeClass(reading) {
+  const voltage = batteryVoltage(reading);
+  if (voltage === null) return "unknown";
+  if (voltage <= 2.5) return "problem";
+  if (voltage <= 2.8) return "warning";
+  return "online";
+}
+
+function batteryLevel(reading) {
+  const label = batteryLabel(reading);
+  return { critical: 1, low: 2, medium: 3, good: 4, full: 5 }[label] || 0;
+}
+
+function batteryVoltage(reading) {
+  if (reading.battery === null || reading.battery === undefined || reading.battery === "") {
+    return null;
+  }
+  const voltage = Number(reading.battery);
+  return Number.isNaN(voltage) ? null : voltage;
+}
+
+function batteryIcon(reading) {
+  const label = batteryLabel(reading);
+  const level = batteryLevel(reading);
+  const bars = [1, 2, 3, 4, 5]
+    .map((bar) => `<span class="${bar <= level ? "filled" : ""}"></span>`)
+    .join("");
+  return `
+    <span
+      class="battery-icon ${escapeHtml(batteryBadgeClass(reading))}"
+      title="Battery ${escapeHtml(label)}"
+      aria-label="Battery ${escapeHtml(label)}"
+      role="img"
+    >
+      ${bars}
+    </span>
+  `;
 }
 
 function ageLabel(seconds) {
@@ -93,7 +145,10 @@ function card(reading) {
       </div>
       <div class="value">${escapeHtml(fmtValue(reading.value))} <span class="unit">${escapeHtml(reading.unit)}</span></div>
       <div class="meta">${escapeHtml(reading.quantity)}${reading.description ? ` · ${escapeHtml(reading.description)}` : ""}</div>
-      <div class="timestamp">updated ${ageSpan(reading)} · ${escapeHtml(reading.measured_at || "no timestamp")}</div>
+      <div class="card-foot">
+        ${batteryIcon(reading)}
+        <span class="timestamp">updated ${ageSpan(reading)} · ${escapeHtml(reading.measured_at || "no timestamp")}</span>
+      </div>
     </article>
   `;
 }
@@ -139,6 +194,7 @@ function filteredReadings() {
       reading.zone,
       reading.quantity,
       reading.description,
+      reading.battery,
       reading.receiver,
       reading.transmitter_id,
     ]
@@ -167,6 +223,8 @@ function compareReadings(a, b) {
     result = (a.age_seconds ?? 999999999) - (b.age_seconds ?? 999999999);
   } else if (key === "value") {
     result = compareValues(a.value, b.value);
+  } else if (key === "battery") {
+    result = compareValues(a.battery, b.battery);
   } else {
     result = textValue(a, key).localeCompare(textValue(b, key));
   }
@@ -271,6 +329,7 @@ function renderTable(readings) {
           <td class="sensor-cell">${escapeHtml(sensorLabel(reading))}</td>
           <td class="value-cell">${escapeHtml(fmtValue(reading.value))} <span>${escapeHtml(reading.unit)}</span></td>
           <td>${ageSpan(reading)}</td>
+          <td class="battery-cell">${batteryIcon(reading)}</td>
           <td class="optional-column">${escapeHtml(reading.zone)}</td>
           <td class="optional-column">${escapeHtml(reading.receiver)}</td>
           <td class="optional-column">${escapeHtml(reading.transmitter_id)}</td>
@@ -326,6 +385,7 @@ function renderDetails(reading) {
       ${detailRow("Zone", reading.zone)}
       ${detailRow("Status", reading.status_label)}
       ${detailRow("Status code", reading.status_code ?? "n/a")}
+      ${detailRow("Battery", batteryLabel(reading))}
       ${detailRow("Updated", `updated ${plainAge(reading)} · ${reading.measured_at || "no timestamp"}`)}
       ${detailRow("Receiver", reading.receiver)}
       ${detailRow("Transmitter", reading.transmitter_id)}

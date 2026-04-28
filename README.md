@@ -30,7 +30,8 @@ summary/#
 
 Each retained message should be a JSON object with a `receiver`, an `updated_at` timestamp, and a
 `transmitters` mapping. Transmitter metadata may be partial; missing `location`, `zone`, `quantity`,
-`description`, or `unit` fields are displayed with sensible placeholders instead of failing.
+`description`, `unit`, or `battery` fields are displayed with sensible placeholders instead of
+failing.
 
 ## Configuration
 
@@ -85,6 +86,9 @@ compiler and the runtime image stays small.
 The UI is server-rendered first, with a small vanilla JavaScript refresh loop that fetches
 `/api/summary`. It includes summary counts, MQTT connection state, search, status/zone/receiver
 filters, card and compact table views, and a priority section for non-online readings.
+Transmitter battery state is shown in the card, table, and detail views when present. Battery
+labels are derived from voltage: `full` at 3.1 V or higher, `good` at 2.9-3.0 V, `medium` at
+2.7-2.8 V, `low` at 2.6 V, and `critical` at 2.5 V or lower.
 
 ## Development
 

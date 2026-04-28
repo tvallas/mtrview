@@ -17,6 +17,7 @@ def test_normalizes_summary_with_full_metadata() -> None:
                 "quantity": "Temperature",
                 "status": "online",
                 "status_code": 1,
+                "battery": 2.6,
                 "unit": "°C",
                 "value": 22.3,
                 "zone": "Indoor",
@@ -40,6 +41,7 @@ def test_normalizes_summary_with_full_metadata() -> None:
     assert reading.age_seconds == 81
     assert reading.problem is False
     assert reading.status_label == "online"
+    assert reading.battery == 2.6
 
 
 def test_normalizes_partial_metadata_with_placeholders() -> None:
@@ -65,6 +67,7 @@ def test_normalizes_partial_metadata_with_placeholders() -> None:
     assert reading.zone == "Unknown zone"
     assert reading.quantity == "Unknown measurement"
     assert reading.unit == ""
+    assert reading.battery is None
 
 
 def test_old_or_missing_timestamps_do_not_change_status() -> None:
