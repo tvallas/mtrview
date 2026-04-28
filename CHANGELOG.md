@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.3.1 (2026-04-28)
+
+### Bug Fixes
+
+- **ui**: Hydrate initial MQTT status
+  ([`b2ab353`](https://github.com/tvallas/mtrview/commit/b2ab35388be761131ca0926a0211a4d9d76fafda))
+
+
 ## v0.3.0 (2026-04-28)
 
 ### Chores
