@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.3.3 (2026-04-28)
+
+### Bug Fixes
+
+- **deps**: Bump python in the docker-minor-patch group
+  ([`92a2928`](https://github.com/tvallas/mtrview/commit/92a2928bde70ae5edbc77fff348431222b569682))
+
+
 ## v0.3.2 (2026-04-28)
 
 ### Bug Fixes
