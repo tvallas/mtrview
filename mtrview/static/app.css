@@ -85,6 +85,37 @@ main {
   padding: 0.75rem clamp(0.75rem, 3vw, 1.6rem) 3rem;
 }
 
+.app-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem 1.1rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.version-status {
+  color: var(--muted);
+}
+
+.version-status[data-state="current"] {
+  color: #7ee787;
+}
+
+.version-status[data-state="available"] {
+  color: #f2cc60;
+}
+
+.version-status[data-state="unknown"] {
+  color: #ff9b96;
+}
+
+.version-status a {
+  color: inherit;
+}
+
 .header-metrics {
   display: grid;
   grid-template-columns: minmax(14rem, auto) minmax(8.5rem, auto) auto auto;

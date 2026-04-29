@@ -5,8 +5,10 @@ import re
 
 from starlette.testclient import TestClient
 
+from mtrview import __version__
 from mtrview.app import create_app
 from mtrview.config import Settings
+from mtrview.version import VersionCheckResult
 
 
 def test_health_endpoint() -> None:
@@ -76,6 +78,8 @@ def test_dashboard_html_smoke() -> None:
 
     assert response.status_code == 200
     assert "mtrview" in response.text
+    assert f"mtrview {__version__}" in response.text
+    assert 'id="versionStatus"' in response.text
     assert "MTRVIEW_INITIAL_DATA" in response.text
     initial_data_match = re.search(r"window\.MTRVIEW_INITIAL_DATA = (.*);", response.text)
     assert initial_data_match is not None
@@ -101,6 +105,44 @@ def test_dashboard_html_smoke() -> None:
     assert 'role="dialog"' in response.text
     assert 'data-sort="location"' in response.text
     assert 'data-sort="status"' not in response.text
+
+
+def test_api_version_uses_cached_checker_status() -> None:
+    app = create_app(Settings(mqtt_enabled=False))
+    app.state.version_checker = StubVersionChecker(
+        VersionCheckResult(
+            current_version="0.3.3",
+            latest_version="0.4.0",
+            update_available=True,
+            checked_at=12.3,
+            release_url="https://github.com/tvallas/mtrview/releases/tag/v0.4.0",
+        )
+    )
+
+    with TestClient(app) as client:
+        response = client.get("/api/version")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "current_version": "0.3.3",
+        "latest_version": "0.4.0",
+        "update_available": True,
+        "checked_at": 12.3,
+        "error": None,
+        "release_url": "https://github.com/tvallas/mtrview/releases/tag/v0.4.0",
+    }
+
+
+def test_api_version_can_be_disabled() -> None:
+    app = create_app(Settings(mqtt_enabled=False, update_check_enabled=False))
+
+    with TestClient(app) as client:
+        response = client.get("/api/version")
+
+    assert response.status_code == 200
+    assert response.json()["current_version"] == __version__
+    assert response.json()["update_available"] is None
+    assert response.json()["error"] == "disabled"
 
 
 def test_api_summary_exposes_age_seconds_for_client_side_ticking() -> None:
@@ -135,3 +177,11 @@ def test_favicon_ico_route() -> None:
 
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/x-icon"
+
+
+class StubVersionChecker:
+    def __init__(self, result: VersionCheckResult) -> None:
+        self.result = result
+
+    def status(self) -> VersionCheckResult:
+        return self.result

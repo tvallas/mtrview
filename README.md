@@ -48,6 +48,9 @@ Settings are read from environment variables:
 | `MTRVIEW_HTTP_PORT` | `8000` |
 | `MTRVIEW_REFRESH_INTERVAL_SECONDS` | `20` |
 | `MTRVIEW_DISPLAY_TIMEZONE` | `UTC` |
+| `MTRVIEW_UPDATE_CHECK_ENABLED` | `true` |
+| `MTRVIEW_UPDATE_CHECK_URL` | GitHub latest release API |
+| `MTRVIEW_UPDATE_CHECK_INTERVAL_SECONDS` | `21600` |
 
 See `.env.example` for a copyable starting point.
 
@@ -89,6 +92,11 @@ filters, card and compact table views, and a priority section for non-online rea
 Transmitter battery state is shown in the card, table, and detail views when present. Battery
 labels are derived from voltage: `full` at 3.1 V or higher, `good` at 2.9-3.0 V, `medium` at
 2.7-2.8 V, `low` at 2.6 V, and `critical` at 2.5 V or lower.
+
+The dashboard footer shows the running mtrview version. By default the browser asks
+`/api/version` for update status, and the server checks the latest GitHub release with a six-hour
+cache. Set `MTRVIEW_UPDATE_CHECK_ENABLED=false` to disable outbound update checks, or set
+`MTRVIEW_UPDATE_CHECK_URL` to another compatible JSON endpoint that exposes `tag_name` or `name`.
 
 ## Development
 
