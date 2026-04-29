@@ -33,6 +33,7 @@ const els = {
   detailOverlay: document.getElementById("sensorDetailOverlay"),
   detailClose: document.getElementById("detailClose"),
   sensorDetail: document.getElementById("sensorDetail"),
+  versionStatus: document.getElementById("versionStatus"),
 };
 
 const sortDefaults = {
@@ -427,6 +428,41 @@ async function refresh() {
   }
 }
 
+async function refreshVersionStatus() {
+  if (!els.versionStatus) return;
+  setVersionStatus("checking", "checking updates");
+  try {
+    const response = await fetch("/api/version", { cache: "no-store" });
+    if (!response.ok) throw new Error(`version check failed: ${response.status}`);
+    renderVersionStatus(await response.json());
+  } catch (error) {
+    setVersionStatus("unknown", "update check unavailable");
+  }
+}
+
+function renderVersionStatus(status) {
+  if (status.update_available === true) {
+    const latest = status.latest_version ? ` ${status.latest_version}` : "";
+    const label = `update${latest} available`;
+    setVersionStatus("available", label);
+    if (status.release_url) {
+      els.versionStatus.innerHTML = `<a href="${escapeHtml(status.release_url)}" rel="noreferrer">${escapeHtml(label)}</a>`;
+    }
+    return;
+  }
+  if (status.update_available === false) {
+    setVersionStatus("current", "up to date");
+    return;
+  }
+  setVersionStatus(status.error === "disabled" ? "disabled" : "unknown", "update check unavailable");
+}
+
+function setVersionStatus(stateName, label) {
+  els.versionStatus.dataset.state = stateName;
+  els.versionStatus.textContent = label;
+  els.versionStatus.title = label;
+}
+
 function tickRelativeAges() {
   const elapsedSeconds = Math.floor((Date.now() - state.fetchedAt) / 1000);
   document.querySelectorAll(".relative-age[data-age-seconds]").forEach((element) => {
@@ -531,5 +567,7 @@ els.controlsToggle.addEventListener("click", () => {
 
 render();
 tickRelativeAges();
+refreshVersionStatus();
 setInterval(tickRelativeAges, 1000);
 setInterval(refresh, Math.max(5, window.MTRVIEW_REFRESH_INTERVAL || 20) * 1000);
+setInterval(refreshVersionStatus, 6 * 60 * 60 * 1000);

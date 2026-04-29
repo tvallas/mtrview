@@ -39,6 +39,9 @@ class Settings:
     display_timezone: str = "UTC"
     refresh_interval_seconds: int = 20
     mqtt_enabled: bool = True
+    update_check_enabled: bool = True
+    update_check_url: str = "https://api.github.com/repos/tvallas/mtrview/releases/latest"
+    update_check_interval_seconds: int = 21600
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -58,4 +61,13 @@ class Settings:
                 cls.refresh_interval_seconds,
             ),
             mqtt_enabled=_get_bool("MTRVIEW_MQTT_ENABLED", cls.mqtt_enabled),
+            update_check_enabled=_get_bool(
+                "MTRVIEW_UPDATE_CHECK_ENABLED",
+                cls.update_check_enabled,
+            ),
+            update_check_url=os.getenv("MTRVIEW_UPDATE_CHECK_URL", cls.update_check_url),
+            update_check_interval_seconds=_get_int(
+                "MTRVIEW_UPDATE_CHECK_INTERVAL_SECONDS",
+                cls.update_check_interval_seconds,
+            ),
         )
