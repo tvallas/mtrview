@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.4.0 (2026-04-29)
+
+### Features
+
+- **dashboard**: Show version and update status
+  ([`f3cf1c1`](https://github.com/tvallas/mtrview/commit/f3cf1c1fcce3645ad3588ec6e8e8f5fb2b267a9d))
+
+
 ## v0.3.3 (2026-04-28)
 
 ### Bug Fixes
