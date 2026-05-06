@@ -12,6 +12,8 @@ from mtrview.normalization import normalize_summary
 
 LOGGER = logging.getLogger(__name__)
 
+READING_FIELDS = ("description", "location", "measured_at", "quantity", "unit", "value", "zone")
+
 
 class SummaryStore:
     def __init__(self, settings: Settings) -> None:
@@ -34,7 +36,8 @@ class SummaryStore:
 
         receiver = str(data.get("receiver") or receiver_hint or "unknown")
         with self._lock:
-            self._raw_by_receiver[receiver] = data
+            previous = self._raw_by_receiver.get(receiver)
+            self._raw_by_receiver[receiver] = _merge_summary(previous, data)
             self._last_message_at = datetime.now(UTC)
 
     def readings(self, now: datetime | None = None) -> list[ReadingView]:
@@ -76,3 +79,41 @@ def _counts(readings: list[ReadingView], receiver_count: int) -> dict[str, int]:
         "offline": sum(1 for reading in readings if reading.status != "online"),
         "receivers": receiver_count,
     }
+
+
+def _merge_summary(
+    previous: dict[str, Any] | None, incoming: dict[str, Any]
+) -> dict[str, Any]:
+    if previous is None:
+        return incoming
+
+    previous_transmitters = previous.get("transmitters")
+    incoming_transmitters = incoming.get("transmitters")
+    if not isinstance(previous_transmitters, dict) or not isinstance(
+        incoming_transmitters, dict
+    ):
+        return incoming
+
+    merged = dict(incoming)
+    merged_transmitters = dict(incoming_transmitters)
+    for transmitter_id, incoming_reading in incoming_transmitters.items():
+        if not isinstance(incoming_reading, dict) or _has_reading(incoming_reading):
+            continue
+
+        previous_reading = previous_transmitters.get(transmitter_id)
+        if not isinstance(previous_reading, dict) or not _has_reading(previous_reading):
+            continue
+
+        preserved_reading = dict(incoming_reading)
+        for key in READING_FIELDS:
+            if key in previous_reading:
+                preserved_reading[key] = previous_reading[key]
+        merged_transmitters[transmitter_id] = preserved_reading
+
+    merged["transmitters"] = merged_transmitters
+    return merged
+
+
+def _has_reading(raw: dict[str, Any]) -> bool:
+    value = raw.get("value")
+    return value is not None and value != ""
