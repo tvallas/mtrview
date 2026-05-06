@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+from pathlib import Path
 
 from starlette.testclient import TestClient
 
@@ -161,6 +162,20 @@ def test_dashboard_html_smoke() -> None:
     assert 'role="dialog"' in response.text
     assert 'data-sort="location"' in response.text
     assert 'data-sort="status"' not in response.text
+
+
+def test_mobile_detail_styles_use_compact_rows() -> None:
+    css = Path("mtrview/static/app.css").read_text()
+
+    mobile_detail_match = re.search(
+        r"@media \(max-width: 950px\) \{.*?\.detail-grid \{(?P<rules>.*?)\n  \}",
+        css,
+        re.DOTALL,
+    )
+
+    assert mobile_detail_match is not None
+    assert "grid-template-columns: minmax(6rem, 34%) 1fr;" in mobile_detail_match.group("rules")
+    assert "gap: 0;" in mobile_detail_match.group("rules")
 
 
 def test_api_version_uses_cached_checker_status() -> None:
