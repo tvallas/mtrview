@@ -71,6 +71,62 @@ def test_malformed_payload_does_not_replace_existing_state() -> None:
     assert response.json()["counts"]["total"] == 1
 
 
+def test_transmitter_update_without_reading_preserves_latest_reading() -> None:
+    app = create_app(Settings(mqtt_enabled=False))
+    app.state.store.update_from_json(
+        "A1",
+        """
+        {
+          "receiver": "A1",
+          "transmitters": {
+            "15006": {
+              "description": "Ambient air",
+              "location": "Kids room",
+              "measured_at": "2026-04-26T12:03:39Z",
+              "quantity": "Temperature",
+              "status": "online",
+              "status_code": 1,
+              "battery": 2.6,
+              "unit": "°C",
+              "value": 22.3,
+              "zone": "Indoor"
+            }
+          },
+          "updated_at": "2026-04-26T12:04:03Z"
+        }
+        """,
+    )
+    app.state.store.update_from_json(
+        "A1",
+        """
+        {
+          "receiver": "A1",
+          "transmitters": {
+            "15006": {
+              "description": "Calibration date",
+              "status": "online",
+              "status_code": 1,
+              "battery": 2.7
+            }
+          },
+          "updated_at": "2026-04-26T12:05:03Z"
+        }
+        """,
+    )
+
+    with TestClient(app) as client:
+        response = client.get("/api/summary")
+
+    assert response.status_code == 200
+    reading = response.json()["readings"][0]
+    assert reading["display_name"] == "Kids room Temperature"
+    assert reading["value"] == 22.3
+    assert reading["unit"] == "°C"
+    assert reading["measured_at"] == "2026-04-26T12:03:39Z"
+    assert reading["battery"] == 2.7
+    assert reading["updated_at"] == "2026-04-26T12:05:03Z"
+
+
 def test_dashboard_html_smoke() -> None:
     app = create_app(Settings(mqtt_enabled=False))
     with TestClient(app) as client:
