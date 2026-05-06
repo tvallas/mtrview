@@ -39,6 +39,10 @@ class Settings:
     display_timezone: str = "UTC"
     refresh_interval_seconds: int = 20
     mqtt_enabled: bool = True
+    mqtt_max_payload_bytes: int = 1_048_576
+    mqtt_max_receivers: int = 128
+    mqtt_max_transmitters_per_summary: int = 1_000
+    mqtt_max_field_length: int = 512
     update_check_enabled: bool = True
     update_check_url: str = "https://api.github.com/repos/tvallas/mtrview/releases/latest"
     update_check_interval_seconds: int = 21600
@@ -61,6 +65,22 @@ class Settings:
                 cls.refresh_interval_seconds,
             ),
             mqtt_enabled=_get_bool("MTRVIEW_MQTT_ENABLED", cls.mqtt_enabled),
+            mqtt_max_payload_bytes=_get_int(
+                "MTRVIEW_MQTT_MAX_PAYLOAD_BYTES",
+                cls.mqtt_max_payload_bytes,
+            ),
+            mqtt_max_receivers=_get_int(
+                "MTRVIEW_MQTT_MAX_RECEIVERS",
+                cls.mqtt_max_receivers,
+            ),
+            mqtt_max_transmitters_per_summary=_get_int(
+                "MTRVIEW_MQTT_MAX_TRANSMITTERS_PER_SUMMARY",
+                cls.mqtt_max_transmitters_per_summary,
+            ),
+            mqtt_max_field_length=_get_int(
+                "MTRVIEW_MQTT_MAX_FIELD_LENGTH",
+                cls.mqtt_max_field_length,
+            ),
             update_check_enabled=_get_bool(
                 "MTRVIEW_UPDATE_CHECK_ENABLED",
                 cls.update_check_enabled,

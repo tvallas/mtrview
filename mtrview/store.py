@@ -23,6 +23,16 @@ class SummaryStore:
         self._last_message_at: datetime | None = None
 
     def update_from_json(self, receiver_hint: str, payload: bytes | str) -> None:
+        payload_size = _payload_size(payload)
+        if payload_size > self._settings.mqtt_max_payload_bytes:
+            LOGGER.warning(
+                "Ignoring MQTT summary payload for %s: %s bytes exceeds limit of %s",
+                receiver_hint,
+                payload_size,
+                self._settings.mqtt_max_payload_bytes,
+            )
+            return
+
         try:
             decoded = payload.decode("utf-8") if isinstance(payload, bytes) else payload
             data = json.loads(decoded)
@@ -35,7 +45,39 @@ class SummaryStore:
             return
 
         receiver = str(data.get("receiver") or receiver_hint or "unknown")
+        if _has_overlong_string(data, self._settings.mqtt_max_field_length):
+            LOGGER.warning(
+                "Ignoring MQTT summary payload for %s: string field exceeds limit of %s",
+                receiver,
+                self._settings.mqtt_max_field_length,
+            )
+            return
+
+        transmitters = data.get("transmitters")
+        if (
+            isinstance(transmitters, dict)
+            and len(transmitters) > self._settings.mqtt_max_transmitters_per_summary
+        ):
+            LOGGER.warning(
+                "Ignoring MQTT summary payload for %s: %s transmitters exceeds limit of %s",
+                receiver,
+                len(transmitters),
+                self._settings.mqtt_max_transmitters_per_summary,
+            )
+            return
+
         with self._lock:
+            if (
+                receiver not in self._raw_by_receiver
+                and len(self._raw_by_receiver) >= self._settings.mqtt_max_receivers
+            ):
+                LOGGER.warning(
+                    "Ignoring MQTT summary payload for %s: receiver limit of %s reached",
+                    receiver,
+                    self._settings.mqtt_max_receivers,
+                )
+                return
+
             previous = self._raw_by_receiver.get(receiver)
             self._raw_by_receiver[receiver] = _merge_summary(previous, data)
             self._last_message_at = datetime.now(UTC)
@@ -113,3 +155,22 @@ def _merge_summary(previous: dict[str, Any] | None, incoming: dict[str, Any]) ->
 def _has_reading(raw: dict[str, Any]) -> bool:
     value = raw.get("value")
     return value is not None and value != ""
+
+
+def _payload_size(payload: bytes | str) -> int:
+    if isinstance(payload, bytes):
+        return len(payload)
+    return len(payload.encode("utf-8"))
+
+
+def _has_overlong_string(value: Any, max_length: int) -> bool:
+    if isinstance(value, str):
+        return len(value) > max_length
+    if isinstance(value, dict):
+        return any(
+            _has_overlong_string(key, max_length) or _has_overlong_string(item, max_length)
+            for key, item in value.items()
+        )
+    if isinstance(value, list):
+        return any(_has_overlong_string(item, max_length) for item in value)
+    return False
