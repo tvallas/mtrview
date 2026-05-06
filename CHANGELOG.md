@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v0.4.2 (2026-05-06)
+
+### Bug Fixes
+
+- **ui**: Compact mobile sensor details
+  ([`d70436a`](https://github.com/tvallas/mtrview/commit/d70436a561a2238196897142ae0c0d5038ee2343))
+
+### Chores
+
+- **deps**: Bump aquasecurity/trivy-action
+  ([`50e70db`](https://github.com/tvallas/mtrview/commit/50e70dba5bcf746fc9d96921f93f059e744542d7))
+
+
 ## v0.4.1 (2026-05-06)
 
 ### Bug Fixes
