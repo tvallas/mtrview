@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.4.3 (2026-05-06)
+
+### Bug Fixes
+
+- **mqtt**: Bound summary ingestion resources
+  ([`37f3f0c`](https://github.com/tvallas/mtrview/commit/37f3f0c8094691a9e3d21bf0f0ef2bcbe92bc4cf))
+
+
 ## v0.4.2 (2026-05-06)
 
 ### Bug Fixes
