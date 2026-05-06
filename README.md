@@ -44,6 +44,10 @@ Settings are read from environment variables:
 | `MTRVIEW_MQTT_USERNAME` | unset |
 | `MTRVIEW_MQTT_PASSWORD` | unset |
 | `MTRVIEW_MQTT_TOPICS` | `summary/#` |
+| `MTRVIEW_MQTT_MAX_PAYLOAD_BYTES` | `1048576` |
+| `MTRVIEW_MQTT_MAX_RECEIVERS` | `128` |
+| `MTRVIEW_MQTT_MAX_TRANSMITTERS_PER_SUMMARY` | `1000` |
+| `MTRVIEW_MQTT_MAX_FIELD_LENGTH` | `512` |
 | `MTRVIEW_HTTP_HOST` | `0.0.0.0` |
 | `MTRVIEW_HTTP_PORT` | `8000` |
 | `MTRVIEW_REFRESH_INTERVAL_SECONDS` | `20` |
@@ -92,6 +96,10 @@ filters, card and compact table views, and a priority section for non-online rea
 Transmitter battery state is shown in the card, table, and detail views when present. Battery
 labels are derived from voltage: `full` at 3.1 V or higher, `good` at 2.9-3.0 V, `medium` at
 2.7-2.8 V, `low` at 2.6 V, and `critical` at 2.5 V or lower.
+
+MQTT summaries that exceed the configured payload, receiver, transmitter, or string-field limits
+are ignored and logged so malformed or oversized retained messages cannot grow dashboard memory and
+CPU use without bound.
 
 The dashboard footer shows the running mtrview version. By default the browser asks
 `/api/version` for update status, and the server checks the latest GitHub release with a six-hour
