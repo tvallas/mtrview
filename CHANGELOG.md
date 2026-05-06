@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.4.1 (2026-05-06)
+
+### Bug Fixes
+
+- **store**: Preserve latest reading on metadata updates
+  ([`8f51d6f`](https://github.com/tvallas/mtrview/commit/8f51d6f9094f4b28e8191e7200b68e3e6cc0ab9e))
+
+
 ## v0.4.0 (2026-04-29)
 
 ### Features
