@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.4.4 (2026-05-09)
+
+### Bug Fixes
+
+- **deps**: Update gitpython security patch
+  ([`4b1188f`](https://github.com/tvallas/mtrview/commit/4b1188f3bfc64bfae9fe40e9d03054d53bae9acc))
+
+
 ## v0.4.3 (2026-05-06)
 
 ### Bug Fixes
