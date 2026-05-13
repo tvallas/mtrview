@@ -5,3 +5,9 @@ __pycache__/
 .ruff_cache/
 dist/
 *.egg-info/
+config/layout.yml
+config/layout.yml.bak
+config/floorplan.svg
+config/*.svg
+config/*.svg.bak
+config/edit.enabled
