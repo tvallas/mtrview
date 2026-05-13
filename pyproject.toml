@@ -18,6 +18,7 @@ classifiers = [
 dependencies = [
     "jinja2>=3.1.4",
     "paho-mqtt>=2.1.0",
+    "PyYAML>=6.0.0",
     "starlette>=0.46.0",
     "uvicorn>=0.30.0",
 ]

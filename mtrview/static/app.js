@@ -1,10 +1,15 @@
+const MTRVIEW_VIEW_STORAGE_KEY = "mtrview.view";
+const validViews = new Set(["table", "cards", "floorplan"]);
+
 const state = {
   data: window.MTRVIEW_INITIAL_DATA || { readings: [], counts: {}, zones: [], receivers: [] },
   fetchedAt: Date.now(),
-  view: "table",
+  view: initialView(),
   sortKey: "location",
   sortDirection: "asc",
   selectedReadingKey: null,
+  floorplanConfig: null,
+  floorplanReady: false,
 };
 
 const els = {
@@ -27,6 +32,7 @@ const els = {
   tableView: document.getElementById("tableView"),
   cardButton: document.getElementById("cardViewButton"),
   tableButton: document.getElementById("tableViewButton"),
+  floorplanButton: document.getElementById("floorplanViewButton"),
   controls: document.getElementById("controls"),
   controlsToggle: document.getElementById("controlsToggle"),
   sortHeaders: document.querySelectorAll(".sort-header"),
@@ -34,6 +40,10 @@ const els = {
   detailClose: document.getElementById("detailClose"),
   sensorDetail: document.getElementById("sensorDetail"),
   versionStatus: document.getElementById("versionStatus"),
+  floorplanView: document.getElementById("floorplanView"),
+  floorplanStage: document.getElementById("floorplanStage"),
+  floorplanOverlay: document.getElementById("floorplanOverlay"),
+  floorplanEditLink: document.getElementById("floorplanEditLink"),
 };
 
 const sortDefaults = {
@@ -268,12 +278,13 @@ function render() {
 
   renderGroups(readings);
   renderTable(readings);
+  renderFloorplan(readings);
   renderOpenDetails();
   renderSortHeaders();
 }
 
 function setMqttStatus(connected, message) {
-  const statusText = connected ? "connected" : mqttStatusLabel(message);
+  const statusText = connected ? "online" : mqttStatusLabel(message);
   els.mqttStatus.textContent = statusText;
   els.mqttStatus.title = connected ? "MQTT connected" : message || "MQTT disconnected";
   els.mqttStatus.closest(".metric-tile").className =
@@ -338,6 +349,64 @@ function renderTable(readings) {
       `;
     })
     .join("");
+}
+
+function renderFloorplan(readings) {
+  if (!state.floorplanConfig || !els.floorplanOverlay) return;
+  els.floorplanOverlay.replaceChildren();
+  const fillLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  const labelLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  els.floorplanOverlay.append(fillLayer, labelLayer);
+
+  const measurements = floorplanStateFromReadings(readings);
+  state.floorplanConfig.areas.forEach((area) => {
+    const profile =
+      state.floorplanConfig.profiles[area.profile] || state.floorplanConfig.profiles.room;
+    const measurement = measurementForArea(measurements, area);
+    const value = measurement ? measurement.value : null;
+    const classification = classifyTemperature(value, profile);
+    const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    poly.setAttribute("points", polygonPoints(area.points));
+    poly.setAttribute("fill", classification.color);
+    poly.classList.add("area-fill");
+    if (classification.band === "no_color") {
+      poly.classList.add("no-color");
+    }
+    if (measurement && measurement.received_at) {
+      const receivedAt = Date.parse(measurement.received_at);
+      if (!Number.isNaN(receivedAt) && Date.now() - receivedAt > STALE_AFTER_MS) {
+        poly.classList.add("stale");
+      }
+    }
+    fillLayer.appendChild(poly);
+
+    const labelText =
+      value === null || value === undefined ? "--" : `${Number(value).toFixed(1)}${measurement.unit || ""}`;
+    const label = labelLayout(area.points, labelText, area.label_position);
+    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    group.classList.add("area-label-group");
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x", label.x);
+    text.setAttribute("y", label.y);
+    text.setAttribute("font-size", label.fontSize);
+    text.setAttribute("dominant-baseline", "middle");
+    text.classList.add("area-label");
+    text.textContent = labelText;
+    group.appendChild(text);
+    labelLayer.appendChild(group);
+
+    const textBox = text.getBBox();
+    const paddingX = Math.max(6, label.fontSize * 0.28);
+    const paddingY = Math.max(4, label.fontSize * 0.18);
+    const plate = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    plate.setAttribute("x", textBox.x - paddingX);
+    plate.setAttribute("y", textBox.y - paddingY);
+    plate.setAttribute("width", textBox.width + paddingX * 2);
+    plate.setAttribute("height", textBox.height + paddingY * 2);
+    plate.setAttribute("rx", Math.min(8, label.fontSize * 0.18));
+    plate.classList.add("area-label-plate");
+    group.insertBefore(plate, text);
+  });
 }
 
 function renderOpenDetails() {
@@ -437,6 +506,20 @@ async function refreshVersionStatus() {
     renderVersionStatus(await response.json());
   } catch (error) {
     setVersionStatus("unknown", "update check unavailable");
+  }
+}
+
+async function refreshFloorplanMetadata() {
+  if (!els.floorplanOverlay) return;
+  try {
+    await refreshLayoutInfo();
+    state.floorplanConfig = await fetchJson("/api/floorplan/config", { cache: "no-store" });
+    const editing = await fetchJson("/api/floorplan/editing", { cache: "no-store" });
+    els.floorplanEditLink.classList.toggle("hidden", !editing.enabled);
+    state.floorplanReady = true;
+    render();
+  } catch (error) {
+    state.floorplanReady = false;
   }
 }
 
@@ -542,20 +625,104 @@ function setSort(key) {
   render();
 }
 
+function initialView() {
+  const params = new URLSearchParams(window.location.search);
+  const urlView = params.get("view");
+  if (validViews.has(urlView)) return urlView;
+  try {
+    const storedView = localStorage.getItem(MTRVIEW_VIEW_STORAGE_KEY);
+    if (validViews.has(storedView)) return storedView;
+  } catch (error) {
+    return "table";
+  }
+  return "table";
+}
+
 els.cardButton.addEventListener("click", () => {
-  state.view = "cards";
-  els.cardButton.classList.add("active");
-  els.tableButton.classList.remove("active");
-  els.cardView.classList.remove("hidden");
-  els.tableView.classList.add("hidden");
+  setView("cards");
 });
 
 els.tableButton.addEventListener("click", () => {
-  state.view = "table";
-  els.tableButton.classList.add("active");
-  els.cardButton.classList.remove("active");
-  els.tableView.classList.remove("hidden");
-  els.cardView.classList.add("hidden");
+  setView("table");
+});
+
+els.floorplanButton.addEventListener("click", () => {
+  setView("floorplan");
+});
+
+function setView(view) {
+  if (!validViews.has(view)) view = "table";
+  state.view = view;
+  persistView(view);
+  if (view !== "floorplan") {
+    setFloorplanExpanded(false);
+  }
+  document.body.classList.toggle("view-floorplan", view === "floorplan");
+  els.tableButton.classList.toggle("active", view === "table");
+  els.cardButton.classList.toggle("active", view === "cards");
+  els.floorplanButton.classList.toggle("active", view === "floorplan");
+  els.tableView.classList.toggle("hidden", view !== "table");
+  els.cardView.classList.toggle("hidden", view !== "cards");
+  els.floorplanView.classList.toggle("hidden", view !== "floorplan");
+  if (view === "floorplan" && !state.floorplanReady) {
+    refreshFloorplanMetadata();
+  }
+}
+
+function persistView(view) {
+  try {
+    localStorage.setItem(MTRVIEW_VIEW_STORAGE_KEY, view);
+  } catch (error) {
+    // Ignore storage failures in private or locked-down browser contexts.
+  }
+  const url = new URL(window.location.href);
+  const params = url.searchParams;
+  params.set("view", view);
+  window.history.replaceState({}, "", url);
+}
+
+async function toggleFloorplanFullscreen() {
+  if (!els.floorplanView) return;
+  if (document.fullscreenElement) {
+    await document.exitFullscreen();
+    return;
+  }
+  if (document.body.classList.contains("floorplan-expanded")) {
+    setFloorplanExpanded(false);
+    return;
+  }
+  if (els.floorplanView.requestFullscreen && document.fullscreenEnabled) {
+    try {
+      await els.floorplanView.requestFullscreen();
+      return;
+    } catch (error) {
+      setFloorplanExpanded(true);
+      return;
+    }
+  }
+  setFloorplanExpanded(true);
+}
+
+function setFloorplanExpanded(expanded) {
+  document.body.classList.toggle("floorplan-expanded", expanded);
+}
+
+if (els.floorplanStage) {
+  els.floorplanStage.addEventListener("click", () => {
+    toggleFloorplanFullscreen().catch(() => {});
+  });
+  els.floorplanStage.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      toggleFloorplanFullscreen().catch(() => {});
+    }
+  });
+}
+
+document.addEventListener("fullscreenchange", () => {
+  if (document.fullscreenElement === els.floorplanView) {
+    document.body.classList.remove("floorplan-expanded");
+  }
 });
 
 els.controlsToggle.addEventListener("click", () => {
@@ -565,9 +732,11 @@ els.controlsToggle.addEventListener("click", () => {
   els.controlsToggle.classList.toggle("active", !collapsed);
 });
 
+setView(state.view);
 render();
 tickRelativeAges();
 refreshVersionStatus();
+refreshFloorplanMetadata();
 setInterval(tickRelativeAges, 1000);
 setInterval(refresh, Math.max(5, window.MTRVIEW_REFRESH_INTERVAL || 20) * 1000);
 setInterval(refreshVersionStatus, 6 * 60 * 60 * 1000);

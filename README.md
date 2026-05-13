@@ -55,6 +55,11 @@ Settings are read from environment variables:
 | `MTRVIEW_UPDATE_CHECK_ENABLED` | `true` |
 | `MTRVIEW_UPDATE_CHECK_URL` | GitHub latest release API |
 | `MTRVIEW_UPDATE_CHECK_INTERVAL_SECONDS` | `21600` |
+| `MTRVIEW_FLOORPLAN_CONFIG` | `config/layout.yml` |
+| `MTRVIEW_FLOORPLAN_SVG` | bundled sample floorplan SVG |
+| `MTRVIEW_FLOORPLAN_UPLOAD_PATH` | `config/floorplan.svg` |
+| `MTRVIEW_FLOORPLAN_EDIT_FLAG` | `config/edit.enabled` |
+| `MTRVIEW_FLOORPLAN_EDIT_MODE` | unset |
 
 See `.env.example` for a copyable starting point.
 
@@ -92,10 +97,21 @@ compiler and the runtime image stays small.
 
 The UI is server-rendered first, with a small vanilla JavaScript refresh loop that fetches
 `/api/summary`. It includes summary counts, MQTT connection state, search, status/zone/receiver
-filters, card and compact table views, and a priority section for non-online readings.
+filters, card, compact table, and floorplan views, and a priority section for non-online readings.
 Transmitter battery state is shown in the card, table, and detail views when present. Battery
 labels are derived from voltage: `full` at 3.1 V or higher, `good` at 2.9-3.0 V, `medium` at
 2.7-2.8 V, `low` at 2.6 V, and `critical` at 2.5 V or lower.
+
+The floorplan view uses an SVG layout plus a YAML mapping of areas to sensor identities such as
+`Room A::Ambient air::Temperature`. mtrview falls back to a bundled generic sample layout when
+`MTRVIEW_FLOORPLAN_CONFIG` does not exist. Upload your own SVG from `/floorplan/edit`, then edit
+polygons and threshold profiles; saved changes are written to the configured `layout.yml`. The
+bundled sample includes a `no_color` preset for seasonal or otherwise variable areas where threshold
+coloring is not useful, and the editor can add new presets by copying the currently selected preset.
+Editing is locked by default; enable it with `MTRVIEW_FLOORPLAN_EDIT_MODE=always`, or create the flag
+file configured by `MTRVIEW_FLOORPLAN_EDIT_FLAG` for temporary write access. Uploaded SVG layouts are
+stored at `MTRVIEW_FLOORPLAN_UPLOAD_PATH` and override the bundled sample SVG until reset from the
+editor. Local floorplan config, uploads, and edit flag files under `config/` are ignored by git.
 
 MQTT summaries that exceed the configured payload, receiver, transmitter, or string-field limits
 are ignored and logged so malformed or oversized retained messages cannot grow dashboard memory and

@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
+
+PACKAGE_DIR = Path(__file__).parent
 
 
 def _get_int(name: str, default: int) -> int:
@@ -46,6 +49,11 @@ class Settings:
     update_check_enabled: bool = True
     update_check_url: str = "https://api.github.com/repos/tvallas/mtrview/releases/latest"
     update_check_interval_seconds: int = 21600
+    floorplan_config_path: str = "config/layout.yml"
+    floorplan_svg_path: str = str(PACKAGE_DIR / "assets" / "sample-floorplan.svg")
+    floorplan_upload_path: str = "config/floorplan.svg"
+    floorplan_edit_flag_path: str = "config/edit.enabled"
+    floorplan_edit_mode: str | None = None
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -90,4 +98,13 @@ class Settings:
                 "MTRVIEW_UPDATE_CHECK_INTERVAL_SECONDS",
                 cls.update_check_interval_seconds,
             ),
+            floorplan_config_path=os.getenv("MTRVIEW_FLOORPLAN_CONFIG", cls.floorplan_config_path),
+            floorplan_svg_path=os.getenv("MTRVIEW_FLOORPLAN_SVG", cls.floorplan_svg_path),
+            floorplan_upload_path=os.getenv(
+                "MTRVIEW_FLOORPLAN_UPLOAD_PATH", cls.floorplan_upload_path
+            ),
+            floorplan_edit_flag_path=os.getenv(
+                "MTRVIEW_FLOORPLAN_EDIT_FLAG", cls.floorplan_edit_flag_path
+            ),
+            floorplan_edit_mode=os.getenv("MTRVIEW_FLOORPLAN_EDIT_MODE") or None,
         )
