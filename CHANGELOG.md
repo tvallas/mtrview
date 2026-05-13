@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.4.5 (2026-05-13)
+
+### Bug Fixes
+
+- **deps**: Bump urllib3 from 2.6.3 to 2.7.0
+  ([`661c50f`](https://github.com/tvallas/mtrview/commit/661c50f149a406ce96b5dde8f63d6e6517826b97))
+
+
 ## v0.4.4 (2026-05-09)
 
 ### Bug Fixes
