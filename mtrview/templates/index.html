@@ -13,7 +13,7 @@
       sizes="180x180"
       href="{{ url_for('static', path='apple-touch-icon.png') }}"
     />
-    <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}?v={{ static_version }}" />
   </head>
   <body class="controls-collapsed">
     <header class="topbar">
@@ -43,6 +43,7 @@
         <div class="view-toggle header-view-toggle" role="group" aria-label="View">
           <button id="tableViewButton" class="active" type="button">Table</button>
           <button id="cardViewButton" type="button">Cards</button>
+          <button id="floorplanViewButton" type="button">Floorplan</button>
         </div>
         <button
           id="controlsToggle"
@@ -126,6 +127,24 @@
           <tbody id="sensorTable"></tbody>
         </table>
       </section>
+
+      <section id="floorplanView" class="floorplan-view hidden" aria-label="Floorplan">
+        <div
+          id="floorplanStage"
+          class="floorplan-stage dashboard-floorplan-stage"
+          role="button"
+          tabindex="0"
+          aria-label="Toggle fullscreen floorplan"
+        >
+          <img id="floorplanImage" class="floorplan-image" src="/floorplan.svg" alt="Floorplan" />
+          <svg id="floorplanOverlay" class="floorplan-overlay" aria-label="Temperature areas"></svg>
+        </div>
+        <div class="floorplan-actions">
+          <a id="floorplanEditLink" class="floorplan-edit-link hidden" href="/floorplan/edit">
+            Edit floorplan
+          </a>
+        </div>
+      </section>
     </main>
 
     <footer class="app-footer" aria-label="Application version">
@@ -150,7 +169,9 @@
     <script>
       window.MTRVIEW_INITIAL_DATA = {{ snapshot | tojson }};
       window.MTRVIEW_REFRESH_INTERVAL = {{ settings.refresh_interval_seconds }};
+      window.MTRVIEW_FLOORPLAN_CONFIG = "/api/floorplan/config";
     </script>
-    <script src="{{ url_for('static', path='app.js') }}"></script>
+    <script src="{{ url_for('static', path='floorplan-shared.js') }}?v={{ static_version }}"></script>
+    <script src="{{ url_for('static', path='app.js') }}?v={{ static_version }}"></script>
   </body>
 </html>

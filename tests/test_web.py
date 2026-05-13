@@ -150,6 +150,9 @@ def test_dashboard_html_smoke() -> None:
     assert "favicon.png" in response.text
     assert "apple-touch-icon.png" in response.text
     assert "mtrview-logo.png" in response.text
+    assert re.search(r"app\.css\?v=\d+", response.text)
+    assert re.search(r"floorplan-shared\.js\?v=\d+", response.text)
+    assert re.search(r"app\.js\?v=\d+", response.text)
     assert "Latest mtr2mqtt summaries from MQTT" not in response.text
     assert "Not online" not in response.text
     assert "Offline" in response.text
@@ -176,6 +179,92 @@ def test_mobile_detail_styles_use_compact_rows() -> None:
     assert mobile_detail_match is not None
     assert "grid-template-columns: minmax(6rem, 34%) 1fr;" in mobile_detail_match.group("rules")
     assert "gap: 0;" in mobile_detail_match.group("rules")
+
+
+def test_warning_styles_do_not_override_battery_icons() -> None:
+    css = Path("mtrview/static/app.css").read_text()
+
+    assert "\n.warning {" not in css
+    assert ".editor-panel .warning {" in css
+
+
+def test_no_color_floorplan_areas_are_transparent() -> None:
+    js = Path("mtrview/static/floorplan-shared.js").read_text()
+    css = Path("mtrview/static/app.css").read_text()
+
+    assert 'band: "no_color", color: "transparent"' in js
+    assert ".area-fill.no-color {" in css
+
+
+def test_floorplan_mobile_and_fullscreen_hooks() -> None:
+    html = create_app(Settings(mqtt_enabled=False)).state
+    css = Path("mtrview/static/app.css").read_text()
+    js = Path("mtrview/static/app.js").read_text()
+    mobile_start = css.index("@media (max-width: 950px)")
+    mobile_end = css.index("@media (max-width: 780px)")
+    mobile_rules = css[mobile_start:mobile_end]
+    landscape_start = css.index("@media (max-height: 520px) and (orientation: landscape)")
+    landscape_end = css.index("@media (max-width: 640px)")
+    landscape_rules = css[landscape_start:landscape_end]
+
+    template = Path("mtrview/templates/index.html").read_text()
+
+    assert "floorplanStage" in template
+    assert "floorplanFullscreenButton" not in template
+    assert 'aria-label="Toggle fullscreen floorplan"' in template
+    assert 'role="button"' in template
+    assert "requestFullscreen" in js
+    assert "floorplan-expanded" in js
+    assert "view-floorplan" in js
+    assert "els.floorplanStage.addEventListener(\"click\"" in js
+    assert 'event.key === "Enter" || event.key === " "' in js
+    assert "floorplanFullscreenButton" not in js
+    assert "@media (max-height: 520px) and (orientation: landscape)" in css
+    assert ":fullscreen" in css
+    assert "body.floorplan-expanded" in css
+    assert ".metric-tile > span {\n    display: block;" in landscape_rules
+    assert ".metric-tile strong {\n    display: flex;" in landscape_rules
+    assert ".connection-tile strong {\n    flex-direction: row;" in landscape_rules
+    assert ".metric-tile span {\n    display: none;" not in landscape_rules
+    assert "if (view !== \"floorplan\")" in js
+    assert (
+        ".header-metrics {\n    grid-template-columns: repeat(4, minmax(0, 1fr));"
+        in mobile_rules
+    )
+    assert ".summary-tile {\n    grid-column: 1 / 3;" in mobile_rules
+    assert ".status-tile {\n    grid-column: 3 / 5;" in mobile_rules
+    assert ".summary-tile {\n    min-width: 0;" in mobile_rules
+    assert ".header-view-toggle {\n    grid-column: 1 / 4;" in mobile_rules
+    assert "grid-template-columns: repeat(3, minmax(0, 1fr));" in mobile_rules
+    assert ".icon-button {\n    grid-column: 4 / 5;" in mobile_rules
+    assert "width: 100%;" in mobile_rules
+    assert "grid-column: 1 / -1;" not in mobile_rules
+    assert ".topbar {\n    position: static;\n    display: grid;" in landscape_rules
+    assert (
+        "minmax(5.4rem, 0.55fr) minmax(5.4rem, 0.55fr) "
+        "minmax(12rem, 1fr)"
+    ) in landscape_rules
+    assert (
+        ".summary-tile,\n  .status-tile,\n  .header-view-toggle,\n  .icon-button"
+        in landscape_rules
+    )
+    assert ".header-view-toggle {\n    grid-column: auto;" in landscape_rules
+    assert ".icon-button {\n    min-width: 0;" in landscape_rules
+    assert 'const statusText = connected ? "online" : mqttStatusLabel(message);' in js
+    assert "body.floorplan-expanded .floorplan-actions" in css
+    assert ".floorplan-view:fullscreen .floorplan-actions {\n  display: none;" in css
+    assert ".floorplan-action," not in css
+    assert ".floorplan-action:hover" not in css
+    assert html is not None
+
+
+def test_dashboard_view_is_persisted_across_refreshes() -> None:
+    js = Path("mtrview/static/app.js").read_text()
+
+    assert "MTRVIEW_VIEW_STORAGE_KEY" in js
+    assert "initialView()" in js
+    assert 'params.set("view", view)' in js
+    assert "localStorage.setItem(MTRVIEW_VIEW_STORAGE_KEY, view)" in js
 
 
 def test_api_version_uses_cached_checker_status() -> None:

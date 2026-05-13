@@ -1,0 +1,119 @@
+profiles:
+  room:
+    normal_min: 21.0
+    normal_max: 23.0
+    cool: 19.0
+    cold: 17.0
+    warm: 24.0
+    hot: 26.0
+    color_enabled: true
+  fridge:
+    normal_min: 2.0
+    normal_max: 8.0
+    cool: 1.0
+    cold: -1.0
+    warm: 9.0
+    hot: 12.0
+    color_enabled: true
+  freezer:
+    normal_min: -24.0
+    normal_max: -16.0
+    cool: -28.0
+    cold: -32.0
+    warm: -14.0
+    hot: -10.0
+    color_enabled: true
+  no_color:
+    normal_min: -999.0
+    normal_max: 999.0
+    cool: -999.0
+    cold: -999.0
+    warm: 999.0
+    hot: 999.0
+    color_enabled: false
+areas:
+  - id: sample-room-a
+    name: Room A
+    location: Room A
+    description: Ambient air
+    quantity: Temperature
+    sensor_key: Room A::Ambient air::Temperature
+    profile: room
+    points:
+      - x: 90
+        y: 90
+      - x: 430
+        y: 90
+      - x: 430
+        y: 630
+      - x: 90
+        y: 630
+    label_position: null
+  - id: sample-room-b
+    name: Room B
+    location: Room B
+    description: Ambient air
+    quantity: Temperature
+    sensor_key: Room B::Ambient air::Temperature
+    profile: room
+    points:
+      - x: 430
+        y: 90
+      - x: 760
+        y: 90
+      - x: 760
+        y: 365
+      - x: 430
+        y: 365
+    label_position: null
+  - id: sample-room-c
+    name: Room C
+    location: Room C
+    description: Ambient air
+    quantity: Temperature
+    sensor_key: Room C::Ambient air::Temperature
+    profile: room
+    points:
+      - x: 760
+        y: 90
+      - x: 1110
+        y: 90
+      - x: 1110
+        y: 365
+      - x: 760
+        y: 365
+    label_position: null
+  - id: sample-room-d
+    name: Room D
+    location: Room D
+    description: Ambient air
+    quantity: Temperature
+    sensor_key: Room D::Ambient air::Temperature
+    profile: room
+    points:
+      - x: 430
+        y: 365
+      - x: 760
+        y: 365
+      - x: 760
+        y: 630
+      - x: 430
+        y: 630
+    label_position: null
+  - id: sample-outdoor
+    name: Outdoor
+    location: Outdoor
+    description: Ambient air
+    quantity: Temperature
+    sensor_key: Outdoor::Ambient air::Temperature
+    profile: no_color
+    points:
+      - x: 760
+        y: 365
+      - x: 1110
+        y: 365
+      - x: 1110
+        y: 630
+      - x: 760
+        y: 630
+    label_position: null

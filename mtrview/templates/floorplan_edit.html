@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Edit floorplan - mtrview</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}?v={{ static_version }}" />
+  </head>
+  <body class="editor-page">
+    <aside class="editor-panel">
+      <div class="panel-header">
+        <h1>Areas</h1>
+        <a href="/" title="Dashboard">View</a>
+      </div>
+      <section class="editor-section" aria-label="Selected area">
+        <h2>Selected area</h2>
+        <label>
+          Name
+          <input id="area-name" type="text" autocomplete="off" />
+        </label>
+        <label>
+          Location
+          <select id="area-location"></select>
+        </label>
+        <label>
+          Profile
+          <select id="area-profile"></select>
+        </label>
+        <div id="duplicate-warning" class="warning" hidden></div>
+        <div class="button-row">
+          <button id="new-area" type="button">New area</button>
+          <button id="delete-area" type="button">Delete</button>
+        </div>
+        <div class="button-row">
+          <button id="set-label-position" type="button">Set label</button>
+          <button id="reset-label-position" type="button">Auto label</button>
+        </div>
+        <label class="toggle-row">
+          <input id="snap-angles" type="checkbox" checked />
+          Snap square angles
+        </label>
+        <p class="editor-hint">
+          Click the plan to add points. Drag points or the label marker to adjust.
+          Use Set label when a polygon wraps around another area. Hold Shift to temporarily
+          disable snapping.
+        </p>
+      </section>
+      <button id="save" class="primary" type="button">Save changes</button>
+      <details class="editor-section collapsible-section" aria-label="Layout image">
+        <summary>
+          <span>Layout image</span>
+        </summary>
+        <p id="layout-status" class="editor-hint">Bundled SVG</p>
+        <label>
+          Upload SVG
+          <input id="layout-upload" type="file" accept=".svg,image/svg+xml" />
+        </label>
+        <button id="reset-layout" type="button">Use bundled layout</button>
+        <p class="editor-hint">
+          Existing areas stay in their saved coordinates. If the new SVG uses a different canvas
+          size, adjust the polygons after upload.
+        </p>
+      </details>
+      <details class="editor-section collapsible-section" aria-label="Profile thresholds">
+        <summary>
+          <span>Profile thresholds</span>
+        </summary>
+        <label>
+          Preset
+          <select id="profile-editor-select"></select>
+        </label>
+        <div class="button-row">
+          <button id="add-profile" type="button">Add preset</button>
+        </div>
+        <label class="toggle-row">
+          <input id="profile-color-enabled" type="checkbox" checked />
+          Use coloring
+        </label>
+        <div class="threshold-grid">
+          <label>
+            Cold
+            <input id="profile-cold" type="number" step="0.1" inputmode="decimal" />
+          </label>
+          <label>
+            Cool
+            <input id="profile-cool" type="number" step="0.1" inputmode="decimal" />
+          </label>
+          <label>
+            Normal min
+            <input id="profile-normal-min" type="number" step="0.1" inputmode="decimal" />
+          </label>
+          <label>
+            Normal max
+            <input id="profile-normal-max" type="number" step="0.1" inputmode="decimal" />
+          </label>
+          <label>
+            Warm
+            <input id="profile-warm" type="number" step="0.1" inputmode="decimal" />
+          </label>
+          <label>
+            Hot
+            <input id="profile-hot" type="number" step="0.1" inputmode="decimal" />
+          </label>
+        </div>
+      </details>
+      <ul id="area-list" class="area-list"></ul>
+    </aside>
+    <main class="editor-stage-wrap">
+      <div class="floorplan-stage editor-stage">
+        <img id="floorplan" class="floorplan-image" src="/floorplan.svg" alt="Floorplan" />
+        <svg id="overlay" class="floorplan-overlay editor-overlay"></svg>
+      </div>
+    </main>
+    <script src="{{ url_for('static', path='floorplan-shared.js') }}?v={{ static_version }}"></script>
+    <script src="{{ url_for('static', path='floorplan-editor.js') }}?v={{ static_version }}"></script>
+  </body>
+</html>
