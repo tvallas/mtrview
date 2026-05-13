@@ -30,11 +30,13 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           BEFORE_SHA: ${{ github.event.before }}
           HEAD_SHA: ${{ github.sha }}
-          BASE_REF: ${{ github.base_ref }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
-            git fetch origin "$BASE_REF" --depth=1
-            python3 scripts/check_conventional_commits.py --range "origin/$BASE_REF..HEAD"
+            git fetch origin "$PR_BASE_SHA" --depth=1
+            git fetch origin "$PR_HEAD_SHA" --depth=1
+            python3 scripts/check_conventional_commits.py --range "$PR_BASE_SHA..$PR_HEAD_SHA"
           else
             python3 scripts/check_conventional_commits.py --range "$BEFORE_SHA..$HEAD_SHA"
           fi
