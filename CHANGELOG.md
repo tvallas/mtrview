@@ -2,6 +2,32 @@
 
 <!-- version list -->
 
+## v0.5.0 (2026-05-13)
+
+### Code Style
+
+- Format Python code
+  ([`aa7fb15`](https://github.com/tvallas/mtrview/commit/aa7fb155141843f845a40ddf93adcbdd309a9b13))
+
+### Continuous Integration
+
+- Limit PR commit validation to branch commits
+  ([`8558e06`](https://github.com/tvallas/mtrview/commit/8558e0666611c27ef2756422b6bc47319d068a3c))
+
+- Validate PR commit messages instead of title
+  ([`e7af7ff`](https://github.com/tvallas/mtrview/commit/e7af7ff995a76ac785febc135646ca6d07919d1f))
+
+### Documentation
+
+- **floorplan**: Document private layout configuration
+  ([`6fe12d8`](https://github.com/tvallas/mtrview/commit/6fe12d84044f147df007e6c88132496ed6a48843))
+
+### Features
+
+- **floorplan**: Add floorplan view and editor
+  ([`f36b586`](https://github.com/tvallas/mtrview/commit/f36b58668da6d7ff359f9c74aa9c822badae7218))
+
+
 ## v0.4.5 (2026-05-13)
 
 ### Bug Fixes
