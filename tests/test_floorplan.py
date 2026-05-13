@@ -42,9 +42,7 @@ def test_floorplan_config_load_save_round_trip(tmp_path: Path) -> None:
     loaded = load_floorplan_config(config_path)
     assert loaded.profiles["room"].to_dict() == config.profiles["room"].to_dict()
     assert loaded.profiles["no_color"].color_enabled is False
-    assert [area.to_dict() for area in loaded.areas] == [
-        area.to_dict() for area in config.areas
-    ]
+    assert [area.to_dict() for area in loaded.areas] == [area.to_dict() for area in config.areas]
 
 
 def test_floorplan_default_config_includes_no_color_profile() -> None:
@@ -216,14 +214,20 @@ def test_floorplan_editing_is_disabled_without_flag_or_env_override(tmp_path: Pa
     with TestClient(app) as client:
         assert client.get("/api/floorplan/editing").json() == {"enabled": False}
         assert client.get("/floorplan/edit").status_code == 403
-        assert client.put(
-            "/api/floorplan/config", json=DashboardConfig.default().to_dict()
-        ).status_code == 403
-        assert client.post(
-            "/api/floorplan/layout",
-            content="<svg></svg>",
-            headers={"Content-Type": "image/svg+xml"},
-        ).status_code == 403
+        assert (
+            client.put(
+                "/api/floorplan/config", json=DashboardConfig.default().to_dict()
+            ).status_code
+            == 403
+        )
+        assert (
+            client.post(
+                "/api/floorplan/layout",
+                content="<svg></svg>",
+                headers={"Content-Type": "image/svg+xml"},
+            ).status_code
+            == 403
+        )
         assert client.delete("/api/floorplan/layout").status_code == 403
 
 
@@ -241,9 +245,12 @@ def test_floorplan_editing_can_be_enabled_with_flag_file(tmp_path: Path) -> None
     with TestClient(app) as client:
         assert client.get("/api/floorplan/editing").json() == {"enabled": True}
         assert client.get("/floorplan/edit").status_code == 200
-        assert client.put(
-            "/api/floorplan/config", json=DashboardConfig.default().to_dict()
-        ).status_code == 200
+        assert (
+            client.put(
+                "/api/floorplan/config", json=DashboardConfig.default().to_dict()
+            ).status_code
+            == 200
+        )
 
 
 def test_floorplan_edit_mode_env_override_takes_precedence_over_flag(

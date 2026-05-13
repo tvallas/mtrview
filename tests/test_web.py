@@ -216,7 +216,7 @@ def test_floorplan_mobile_and_fullscreen_hooks() -> None:
     assert "requestFullscreen" in js
     assert "floorplan-expanded" in js
     assert "view-floorplan" in js
-    assert "els.floorplanStage.addEventListener(\"click\"" in js
+    assert 'els.floorplanStage.addEventListener("click"' in js
     assert 'event.key === "Enter" || event.key === " "' in js
     assert "floorplanFullscreenButton" not in js
     assert "@media (max-height: 520px) and (orientation: landscape)" in css
@@ -226,10 +226,9 @@ def test_floorplan_mobile_and_fullscreen_hooks() -> None:
     assert ".metric-tile strong {\n    display: flex;" in landscape_rules
     assert ".connection-tile strong {\n    flex-direction: row;" in landscape_rules
     assert ".metric-tile span {\n    display: none;" not in landscape_rules
-    assert "if (view !== \"floorplan\")" in js
+    assert 'if (view !== "floorplan")' in js
     assert (
-        ".header-metrics {\n    grid-template-columns: repeat(4, minmax(0, 1fr));"
-        in mobile_rules
+        ".header-metrics {\n    grid-template-columns: repeat(4, minmax(0, 1fr));" in mobile_rules
     )
     assert ".summary-tile {\n    grid-column: 1 / 3;" in mobile_rules
     assert ".status-tile {\n    grid-column: 3 / 5;" in mobile_rules
@@ -240,13 +239,9 @@ def test_floorplan_mobile_and_fullscreen_hooks() -> None:
     assert "width: 100%;" in mobile_rules
     assert "grid-column: 1 / -1;" not in mobile_rules
     assert ".topbar {\n    position: static;\n    display: grid;" in landscape_rules
+    assert ("minmax(5.4rem, 0.55fr) minmax(5.4rem, 0.55fr) minmax(12rem, 1fr)") in landscape_rules
     assert (
-        "minmax(5.4rem, 0.55fr) minmax(5.4rem, 0.55fr) "
-        "minmax(12rem, 1fr)"
-    ) in landscape_rules
-    assert (
-        ".summary-tile,\n  .status-tile,\n  .header-view-toggle,\n  .icon-button"
-        in landscape_rules
+        ".summary-tile,\n  .status-tile,\n  .header-view-toggle,\n  .icon-button" in landscape_rules
     )
     assert ".header-view-toggle {\n    grid-column: auto;" in landscape_rules
     assert ".icon-button {\n    min-width: 0;" in landscape_rules

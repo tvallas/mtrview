@@ -122,9 +122,7 @@ class DashboardConfig:
                 "freezer": ThresholdProfile(-24, -16, -28, -32, -14, -10),
                 "cold_storage": ThresholdProfile(4, 10, 2, 0, 12, 16),
                 "outside": ThresholdProfile(-5, 22, -15, -25, 26, 32),
-                "no_color": ThresholdProfile(
-                    -999, 999, -999, -999, 999, 999, color_enabled=False
-                ),
+                "no_color": ThresholdProfile(-999, 999, -999, -999, 999, 999, color_enabled=False),
             },
             areas=[],
         )
@@ -280,9 +278,7 @@ def floorplan_sensor_views(readings: list[dict[str, object | None]]) -> list[dic
     return sensors
 
 
-def floorplan_measurement(
-    reading: dict[str, object | None], key: str
-) -> dict[str, object | None]:
+def floorplan_measurement(reading: dict[str, object | None], key: str) -> dict[str, object | None]:
     return {
         "key": key,
         "label": floorplan_sensor_label(reading),

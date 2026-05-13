@@ -98,9 +98,7 @@ class Settings:
                 "MTRVIEW_UPDATE_CHECK_INTERVAL_SECONDS",
                 cls.update_check_interval_seconds,
             ),
-            floorplan_config_path=os.getenv(
-                "MTRVIEW_FLOORPLAN_CONFIG", cls.floorplan_config_path
-            ),
+            floorplan_config_path=os.getenv("MTRVIEW_FLOORPLAN_CONFIG", cls.floorplan_config_path),
             floorplan_svg_path=os.getenv("MTRVIEW_FLOORPLAN_SVG", cls.floorplan_svg_path),
             floorplan_upload_path=os.getenv(
                 "MTRVIEW_FLOORPLAN_UPLOAD_PATH", cls.floorplan_upload_path
