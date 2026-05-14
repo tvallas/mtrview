@@ -196,6 +196,14 @@ def test_no_color_floorplan_areas_are_transparent() -> None:
     assert ".area-fill.no-color {" in css
 
 
+def test_floorplan_matching_does_not_fallback_to_location_for_described_areas() -> None:
+    js = Path("mtrview/static/floorplan-shared.js").read_text()
+
+    assert "area.description ? null : area.location" in js
+    assert "area.description ? `${area.location}::${area.description}` : null" in js
+    assert "measurements[reading.location] = measurement;" in js
+
+
 def test_floorplan_mobile_and_fullscreen_hooks() -> None:
     html = create_app(Settings(mqtt_enabled=False)).state
     css = Path("mtrview/static/app.css").read_text()

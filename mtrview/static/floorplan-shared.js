@@ -99,7 +99,7 @@ function measurementForArea(measurements, area) {
     area.sensor_key,
     floorplanSensorKey(area.location, area.description, area.quantity || "Temperature"),
     area.description ? `${area.location}::${area.description}` : null,
-    area.location,
+    area.description ? null : area.location,
   ].filter(Boolean);
 
   for (const key of candidates) {
