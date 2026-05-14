@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.6.0 (2026-05-14)
+
+### Features
+
+- **floorplan**: Add direct fullscreen page
+  ([`68b7bf9`](https://github.com/tvallas/mtrview/commit/68b7bf948d20ca8d64895e29ae92c45dc5084e86))
+
+
 ## v0.5.0 (2026-05-13)
 
 ### Code Style

@@ -1,6 +1,6 @@
 [project]
 name = "mtrview"
-version = "0.5.0"
+version = "0.6.0"
 description = "Human-friendly dashboard for mtr2mqtt summary topics"
 readme = "README.md"
 license = "MIT"
