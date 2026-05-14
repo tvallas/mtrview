@@ -75,6 +75,8 @@ Then open `http://localhost:8000/`.
 Useful endpoints:
 
 - `GET /` - dashboard
+- `GET /floorplan` - full-screen floorplan view for wall displays or home-screen shortcuts
+- `GET /floorplan/edit` - floorplan polygon and SVG editor when editing is enabled
 - `GET /api/summary` - normalized JSON for all receivers and transmitters
 - `GET /health` - health status
 
@@ -108,6 +110,8 @@ The floorplan view uses an SVG layout plus a YAML mapping of areas to sensor ide
 polygons and threshold profiles; saved changes are written to the configured `layout.yml`. The
 bundled sample includes a `no_color` preset for seasonal or otherwise variable areas where threshold
 coloring is not useful, and the editor can add new presets by copying the currently selected preset.
+Open `/floorplan` directly for a full-screen floorplan page without dashboard controls; this is
+intended for wall displays, browser bookmarks, and mobile home-screen shortcuts.
 Editing is locked by default; enable it with `MTRVIEW_FLOORPLAN_EDIT_MODE=always`, or create the flag
 file configured by `MTRVIEW_FLOORPLAN_EDIT_FLAG` for temporary write access. Uploaded SVG layouts are
 stored at `MTRVIEW_FLOORPLAN_UPLOAD_PATH` and override the bundled sample SVG until reset from the
