@@ -72,6 +72,13 @@ def create_app(settings: Settings | None = None) -> Starlette:
             {"settings": settings, "static_version": request.app.state.static_version},
         )
 
+    async def floorplan_fullscreen(request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(
+            request,
+            "floorplan.html",
+            {"settings": settings, "static_version": request.app.state.static_version},
+        )
+
     async def floorplan_svg(request: Request) -> Response:
         asset_path = _floorplan_asset_path(settings)
         uploaded_asset_path = _floorplan_uploaded_asset_path(settings)
@@ -163,6 +170,7 @@ def create_app(settings: Settings | None = None) -> Starlette:
         routes=[
             Route("/favicon.ico", favicon, methods=["GET"]),
             Route("/", dashboard, methods=["GET"]),
+            Route("/floorplan", floorplan_fullscreen, methods=["GET"]),
             Route("/floorplan.svg", floorplan_svg, methods=["GET"]),
             Route("/floorplan/edit", floorplan_editor, methods=["GET"]),
             Route("/api/summary", api_summary, methods=["GET"]),
@@ -204,6 +212,7 @@ def _static_version() -> int:
         PACKAGE_DIR / "static" / "app.js",
         PACKAGE_DIR / "static" / "app.css",
         PACKAGE_DIR / "static" / "floorplan-shared.js",
+        PACKAGE_DIR / "static" / "floorplan-fullscreen.js",
         PACKAGE_DIR / "static" / "floorplan-editor.js",
     ]
     return int(max(path.stat().st_mtime for path in paths if path.exists()))

@@ -200,6 +200,7 @@ def test_floorplan_mobile_and_fullscreen_hooks() -> None:
     html = create_app(Settings(mqtt_enabled=False)).state
     css = Path("mtrview/static/app.css").read_text()
     js = Path("mtrview/static/app.js").read_text()
+    fullscreen_js = Path("mtrview/static/floorplan-fullscreen.js").read_text()
     mobile_start = css.index("@media (max-width: 950px)")
     mobile_end = css.index("@media (max-width: 780px)")
     mobile_rules = css[mobile_start:mobile_end]
@@ -250,6 +251,11 @@ def test_floorplan_mobile_and_fullscreen_hooks() -> None:
     assert ".floorplan-view:fullscreen .floorplan-actions {\n  display: none;" in css
     assert ".floorplan-action," not in css
     assert ".floorplan-action:hover" not in css
+    assert ".floorplan-direct-page {" in css
+    assert ".floorplan-direct-stage {" in css
+    assert 'fetchJson("/api/floorplan/config"' in fullscreen_js
+    assert 'fetchJson("/api/summary"' in fullscreen_js
+    assert "toggleBrowserFullscreen" in fullscreen_js
     assert html is not None
 
 

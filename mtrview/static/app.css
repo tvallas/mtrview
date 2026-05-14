@@ -507,6 +507,48 @@ body.floorplan-expanded .dashboard-floorplan-stage {
   border-color: var(--accent);
 }
 
+.floorplan-direct-page {
+  overflow: hidden;
+}
+
+.floorplan-direct-shell {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100dvh;
+  align-items: center;
+  padding: max(0.5rem, env(safe-area-inset-top)) max(0.5rem, env(safe-area-inset-right))
+    max(0.5rem, env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left));
+}
+
+.floorplan-direct-view {
+  margin: 0;
+}
+
+.floorplan-direct-stage {
+  width: min(100%, calc(100dvw - 1rem), calc((100dvh - 1rem) * var(--layout-ratio, 2.264)));
+  max-width: none;
+}
+
+.floorplan-direct-link {
+  position: fixed;
+  top: max(0.5rem, env(safe-area-inset-top));
+  right: max(0.5rem, env(safe-area-inset-right));
+  z-index: 3;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(31, 41, 55, 0.82);
+  color: var(--text);
+  padding: 0.45rem 0.6rem;
+  text-decoration: none;
+  opacity: 0.35;
+}
+
+.floorplan-direct-link:focus-visible,
+.floorplan-direct-link:hover {
+  border-color: var(--accent);
+  opacity: 1;
+}
+
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));

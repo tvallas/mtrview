@@ -328,3 +328,18 @@ def test_floorplan_editor_html_smoke() -> None:
     assert 'id="profile-color-enabled"' in response.text
     assert re.search(r"floorplan-shared\.js\?v=\d+", response.text)
     assert re.search(r"floorplan-editor\.js\?v=\d+", response.text)
+
+
+def test_floorplan_fullscreen_html_smoke() -> None:
+    app = create_app(Settings(mqtt_enabled=False))
+
+    with TestClient(app) as client:
+        response = client.get("/floorplan")
+
+    assert response.status_code == 200
+    assert 'class="floorplan-direct-page"' in response.text
+    assert 'aria-label="Fullscreen floorplan"' in response.text
+    assert 'id="floorplanStage"' in response.text
+    assert 'href="/?view=floorplan"' in response.text
+    assert re.search(r"floorplan-shared\.js\?v=\d+", response.text)
+    assert re.search(r"floorplan-fullscreen\.js\?v=\d+", response.text)
