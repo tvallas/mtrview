@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.6.1 (2026-05-19)
+
+### Bug Fixes
+
+- **floorplan**: Avoid broad location fallback
+  ([`9061039`](https://github.com/tvallas/mtrview/commit/9061039cc1fe2e9d79c85088dc1bf1d7065d7adb))
+
+
 ## v0.6.0 (2026-05-14)
 
 ### Features
